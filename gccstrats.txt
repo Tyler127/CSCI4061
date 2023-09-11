@@ -1,0 +1,56 @@
+---
+
+gcc 
+
+project code: p1.c
+
+use: gcc -c p1.c
+gives object file: p1.o
+
+use: gcc -o p1.out p1.0
+gives runnable file: p1.out
+
+use: gcc -o p1.out p1.c
+gives runnable file: p1.out
+
+run with: ./p1.out
+
+---
+
+gcc flags
+
+-c : Unlinked non executable files, good for when multiple files
+-o : Name the object file gives executable object file
+
+---
+
+makefiles
+
+- controls generation of executables
+- set of rules to complete an action or generate files
+- rule structure:
+    target: prerequisites ...
+            recipe
+            ...
+- prerequisites : action or file that is required for the target
+- recipe : one or more actions carried out by make to 
+           generate target file or action
+- example:
+    p1.o: p1.c
+          gcc -c p1.c
+    p1.out: p1.o 
+          gcc -o p1.out p1.o 
+
+---
+
+usage
+
+- execute default / first rule 
+    $make 
+- execute specific rule 
+    $make p1.out 
+- repeated calls to same make will compile code only if change in dependencies
+
+---
+
+make debug file? : gcc -g -o p1 linked_list.c main.c
