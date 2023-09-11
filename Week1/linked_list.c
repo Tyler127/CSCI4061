@@ -16,7 +16,7 @@ void insertLL(int value){
     Node *newNode = createNode(value);
 
     // Case 1: Empty linked list
-    if(head->next == NULL){
+    if(head == NULL){
         head = newNode;
         return;
     }
