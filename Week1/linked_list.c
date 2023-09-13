@@ -11,7 +11,6 @@ Node *createNode(int value){
 }
 
 void insertLL(int value){
-
     // Create a new node pointer
     Node *newNode = createNode(value);
 
@@ -28,10 +27,8 @@ void insertLL(int value){
         return;
     }
 
-    // Create node for traversal
-    Node *currNode = head;
-
-    // Case 3: value > last node in linked list
+    // Case 3 & 4: value > last node in linked list and insert value within linked list
+    Node *currNode = head;  // Create node for traversal
     if(value > head->val){
         while(currNode->next != NULL && currNode->next->val < value){
             currNode = currNode->next;
@@ -39,8 +36,6 @@ void insertLL(int value){
         newNode->next = currNode->next;
         currNode->next = newNode;
     }
-
-    // Case 4: insert value within linked list
 }
 
 void freeLL(){
