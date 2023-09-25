@@ -1,0 +1,6 @@
+gcc -o main fan.c
+./main 3
+Child [276757] --- Parent [276756]
+Child [276756] --- Parent [276750]
+Child [276758] --- Parent [276756]
+Child [276759] --- Parent [276756]

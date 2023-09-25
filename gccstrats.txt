@@ -21,6 +21,7 @@ gcc flags
 
 -c : Unlinked non executable files, good for when multiple files
 -o : Name the object file gives executable object file
+-g : Debug flag. Prevents over complication of assembly code.
 
 ---
 

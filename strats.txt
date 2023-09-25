@@ -1,0 +1,67 @@
+
+
+fork(): 
+    Parent Return: pid of child
+    Child Return: 0
+
+
+
+exec():
+    Terminate with NULL as last arg
+
+
+File I/O:
+    System Calls:
+        - open
+        - close
+        - read
+        - write
+        - lseek
+
+    I/O Calls:
+        - fopen(char *filename, char *modes)
+            filename -> file to open 
+            modes -> mode to open the file with 
+                EX: fopen("output.txt", "a");
+                    opens 'output.txt' in append mode
+
+        - fscanf()
+
+        - fprintf(FILE* file, char *format, locations)
+            file -> pointer to the file to print to
+            format -> formatting string 
+            locations -> locations of the things used in format
+                EX: fprintf(file, "%d, %d", pid, ppid);
+                    formats pid and ppid as decimals and prints to file
+
+        - fread()
+        - fwrite()
+        - fgets()
+        - fputs()
+
+        - fclose(FILE* file)
+            file -> pointer to the file to be closed
+
+        - ftell()
+        - fseek()
+
+    Open File Modes:
+        - r -> read
+        - w -> write
+        - a -> append
+        - r+ 
+        - w+
+        - a+
+
+    File Structure:
+        {buffer, file descriptor}
+        - file descriptor -> process file descriptor table -> System file table -> Inode table
+
+Strings:
+    - sprintf(char *str, char *format, locations)
+        str -> location to put formatted String
+        format -> format of the string (w/ %d's etc.)
+        locations -> where to find the things used in format
+            EX: sprintf(ppidArray, "%d", ppid);
+                formats ppid as a decimal integer and stores it as char
+                elements in ppidArray
