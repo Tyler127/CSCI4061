@@ -1,0 +1,13 @@
+spliting input into n files:
+    - read to end to get total length
+    - then separate by using file offset and reading x bytes
+
+merkel process trees:
+    - recursive down from main node
+    - each node make 2 children left and right. 
+    - sets new id using parents id 
+    - all parents wait for childrens so main node wont hash until both childs have
+    - so whole tree must be done before parent process will hash 
+    - use the dual hash funciton thingy in hash.h 
+    - how to get left and right hashes from children up to the parent process?
+        - pipe needed?
