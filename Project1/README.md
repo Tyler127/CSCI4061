@@ -29,14 +29,11 @@ Changes to Makefile or Existing Files:
     no changes to Makefile
 
 Contributions Outline:
-All: helped implement void partition_file_data together
-Tyler: Process Tree / Merkle Tree Implementation Plan
-Gianni: Process Tree / Merkle Tree Implementation Plan
-Jackson: Group members, Testing Machine, Changed to Make or Existing Files.
+tyler: 
+gianni: 
+jackson: readme, 
+    
 
 Process Tree / Merkle Tree Implementation Plan:
-    In order to implenment the Process tree portion of the Merkle Tree.
-    Our Plans is as follows:
-
-    
+    ????? pseudocode here
     
