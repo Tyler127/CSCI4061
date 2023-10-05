@@ -46,12 +46,10 @@ void partition_file_data(char *input_file, int n, char *blocks_folder) {
 
         char buffer[1000000];
         fread(buffer, 1, current_block_size, fp);
-        // fprint("%s\n", &buffer);
 
         fprintf(new_file, "%s", buffer);
 
         fclose(new_file);
-
     }
 
     // Close the input file
