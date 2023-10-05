@@ -39,7 +39,7 @@ void partition_file_data(char *input_file, int n, char *blocks_folder) {
         printf("%s\n", blocks_folder);
 
         char file_path[100];
-        sprintf(file_path, "%s/%d.txt", blocks_folder, i);
+        sprintf(file_path, "%s/%ld.txt", blocks_folder, i);
         printf("%s\n", file_path);
 
         FILE *new_file = fopen(file_path, "a");
@@ -50,6 +50,7 @@ void partition_file_data(char *input_file, int n, char *blocks_folder) {
 
         fprintf(new_file, "%s", buffer);
 
+        fclose(new_file);
 
     }
 
