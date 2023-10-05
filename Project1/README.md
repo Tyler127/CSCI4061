@@ -15,21 +15,24 @@ Project group number
 --------------------
 
 Project Group Number:
-    ?
+    3
 
 Group Members:
-    Gianni Guadagno - g
-    Jackson Reichow - r
+    Gianni Guadagno - guada028
+    Jackson Reichow - reich656
     Tyler Larson - lars6653
 
 Testing Machine:
-    ??
+    csel-remote-lnx-01.cselabs.umn.edu
 
 Changes to Makefile or Existing Files:
-    ??
+    no changes to Makefile
 
 Contributions Outline:
-    ??
+all: helped implement void partition_file_data together
+tyler: 
+gianni: 
+jackson: readme
 
 Process Tree / Merkle Tree Implementation Plan:
     ????? pseudocode here
