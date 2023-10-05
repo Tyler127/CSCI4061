@@ -44,7 +44,7 @@ void partition_file_data(char *input_file, int n, char *blocks_folder) {
 
         FILE *new_file = fopen(file_path, "a");
 
-        char buffer[50000];
+        char buffer[1000000];
         fread(buffer, 1, current_block_size, fp);
         // fprint("%s\n", &buffer);
 
