@@ -1,19 +1,3 @@
-One student from each group should upload a .zip file to Gradescope containing all of your project files.
-We’ll be primarily focusing on utils.c and your README, which should contain the following
-information:
-
-Project group number
-● Group member names and x500s
-● The name of the CSELabs computer that you tested your code on
-○ e.g. csel-kh1250-01.cselabs.umn.edu
-● Any changes you made to the Makefile or existing files that would affect grading
-● Plan outlining individual contributions for each member of your group
-● Plan on how you are going to implement the process tree component of creating the Merkle tree
-(high-level pseudocode would be acceptable/preferred for this part)
-
-
---------------------
-
 Project Group Number:
     3
 
@@ -29,11 +13,62 @@ Changes to Makefile or Existing Files:
     no changes to Makefile
 
 Contributions Outline:
-tyler: 
-gianni: 
-jackson: readme, 
-    
+    All: helped implement void partition_file_data together
+    Tyler: Process Tree / Merkle Tree Implementation Plan
+    Gianni: Process Tree / Merkle Tree Implementation Plan
+    Jackson: Group members, Testing Machine, Changed to Make or Existing Files.
 
 Process Tree / Merkle Tree Implementation Plan:
-    ????? pseudocode here
+
+    
+
+     // TODO: If the current process is a leaf process, read in the associated block file 
+    // and compute the hash of the block.
+
+
+
+    // TODO: If the current process is not a leaf process, spawn two child processes using  
+    // exec() and ./child_process. 
+
+    // TODO: Wait for the two child processes to finish
+
+    // TODO: Retrieve the two hashes from the two child processes from output/hashes/
+    // and compute and output the hash of the concatenation of the two hashes.
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    WRONG:
+
+    while id < n - 1: 
+        left pid = fork ()
+        if left pid = 0:
+            id = 2*id + 1
+        right pid = fork()
+        if right pid = 0
+            id = 2*id + 2
+
+    if id != 0:
+        if id <= n:
+            - create file name string for current id
+            - create a buffer for the hash
+            - pass the buffer and the name of file to hash to hash   function
+            - 
+
+
+
+
+
+
     
