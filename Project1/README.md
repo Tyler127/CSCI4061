@@ -35,5 +35,8 @@ Gianni: Process Tree / Merkle Tree Implementation Plan
 Jackson: Group members, Testing Machine, Changed to Make or Existing Files.
 
 Process Tree / Merkle Tree Implementation Plan:
-    ????? pseudocode here
+    In order to implenment the Process tree portion of the Merkle Tree.
+    Our Plans is as follows:
+
+    
     
