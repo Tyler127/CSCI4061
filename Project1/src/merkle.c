@@ -16,8 +16,13 @@ int main(int argc, char* argv[]) {
     }
 
     // TODO: Read in the command line arguments and validate them
-    char *input_file;
-    int n;
+    char *input_file = argv[1];
+    printf("%s\n", input_file);
+    int n = atoi(argv[2]);
+    if (n <= 0 || (n & (n - 1)) != 0) { // Check if N is a power of 2
+        printf("ERROR: N should be a positive power of 2\n");
+        return 1;
+    }
 
 
     // ##### DO NOT REMOVE #####
