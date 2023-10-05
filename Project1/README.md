@@ -29,10 +29,10 @@ Changes to Makefile or Existing Files:
     no changes to Makefile
 
 Contributions Outline:
-all: helped implement void partition_file_data together
-tyler: 
-gianni: 
-jackson: readme
+All: helped implement void partition_file_data together
+Tyler: Process Tree / Merkle Tree Implementation Plan
+Gianni: Process Tree / Merkle Tree Implementation Plan
+Jackson: Group members, Testing Machine, Changed to Make or Existing Files.
 
 Process Tree / Merkle Tree Implementation Plan:
     ????? pseudocode here
