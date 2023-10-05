@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // TODO: Read in the command line arguments and validate them
+    // Read in the command line arguments and validate them
     char *input_file = argv[1];
     printf("%s\n", input_file);
     int n = atoi(argv[2]);
