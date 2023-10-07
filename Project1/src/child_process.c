@@ -13,22 +13,28 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // TODO: If the current process is a leaf process, read in the associated block file 
+    int N = atoi(argv[3]);
+    int id = atoi(argv[4]);
+
+    int left_id = 2 * id + 1;
+    int right_id = 2 * id + 2;
+
+    // If the current process is a leaf process, read in the associated block file 
     // and compute the hash of the block.
+    if( ((N - 1) < id) && (id <= (2 * N - 2))){
+        
+    }
 
     // TODO: If the current process is not a leaf process, spawn two child processes using  
     // exec() and ./child_process. 
 
     // TODO: Wait for the two child processes to finish
 
+
     // TODO: Retrieve the two hashes from the two child processes from output/hashes/
     // and compute and output the hash of the concatenation of the two hashes.
 
-    int N = atoi(argv[3]);
-    int id = atoi(argv[4]);
 
-    int left_id = 2 * id + 1;
-    int right_id = 2 * id + 2;
 
     if (N - 1 <= id && id <= 2 * N - 2) { // Leaf node
         // ... rest of your code ...

@@ -24,24 +24,26 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-
     // ##### DO NOT REMOVE #####
     setup_output_directory(blocks_folder, hashes_folder);
 
-    // TODO: Implement this function in utils.c
+    // Partition file data into N blocks
     partition_file_data(input_file, n, blocks_folder);
 
 
     // TODO: Start the recursive merkle tree computation by spawning first child process (root)
     pid_t root_process = fork();
-    if (root_process == 0) { // Child process (Root of Merkle Tree)
+    // Child process (root of the merkle tree)
+    if (root_process == 0) { 
         execl("./child_process", "./child_process", blocks_folder, hashes_folder, argv[2], "0", (char *)NULL);
-        perror("execl");  // execl only returns on error
+
+        // execl will only return if there is an error executing the process
+        perror("execl");  
         exit(1);
     } else if (root_process > 0) { // Parent process
         wait(NULL); // Wait for the child process to complete
     } else {
-        perror("fork");
+        perror("fork"); // handles any error that would come from forking
         exit(1);
     }
 
