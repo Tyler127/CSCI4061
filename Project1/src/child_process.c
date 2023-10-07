@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     // TODO: Retrieve the two hashes from the two child processes from output/hashes/
     // and compute and output the hash of the concatenation of the two hashes.
 
-        int N = atoi(argv[3]);
+    int N = atoi(argv[3]);
     int id = atoi(argv[4]);
 
     int left_id = 2 * id + 1;
@@ -58,7 +58,61 @@ int main(int argc, char* argv[]) {
 
         // ... rest of your code for hashing and writing output ...
     }
+    
+    char block_file[PATH_MAX];
+    char hash_file[PATH_MAX];
+    char left_hash_file[PATH_MAX];
+    char right_hash_file[PATH_MAX];
+    char hash[HASH_SIZE * 2 + 1];  // Assuming HASH_SIZE is the size of the hash in bytes
+
+    if (N - 1 <= id && id <= 2 * N - 2) { // Leaf node
+        sprintf(block_file, "%s/%d.txt", argv[1], id - (N - 1));
+        sprintf(hash_file, "%s/%d.out", argv[2], id);
+        FILE *block_fp = fopen(block_file, "r");
+        if (!block_fp) {
+            perror("Error opening block file");
+            exit(1);
+        }
+        hash_block(block_fp, hash);  // Assume hash_block is a function that hashes the contents of a file
+        fclose(block_fp);
+
+        FILE *hash_fp = fopen(hash_file, "w");
+        if (!hash_fp) {
+            perror("Error opening hash file");
+            exit(1);
+        }
+        fprintf(hash_fp, "%s", hash);
+        fclose(hash_fp);
+    } else if (id < N - 1) { // Not a leaf node
+        // ... rest of your code ...
+
+        sprintf(left_hash_file, "%s/%d.out", argv[2], left_id);
+        sprintf(right_hash_file, "%s/%d.out", argv[2], right_id);
+        FILE *left_hash_fp = fopen(left_hash_file, "r");
+        FILE *right_hash_fp = fopen(right_hash_file, "r");
+        if (!left_hash_fp || !right_hash_fp) {
+            perror("Error opening hash files");
+            exit(1);
+        }
+
+        char left_hash[HASH_SIZE * 2 + 1];
+        char right_hash[HASH_SIZE * 2 + 1];
+        fscanf(left_hash_fp, "%s", left_hash);
+        fscanf(right_hash_fp, "%s", right_hash);
+        fclose(left_hash_fp);
+        fclose(right_hash_fp);
+
+        combine_hashes(hash, left_hash, right_hash);  // Assume combine_hashes is a function to combine and hash two hash values
+
+        sprintf(hash_file, "%s/%d.out", argv[2], id);
+        FILE *hash_fp = fopen(hash_file, "w");
+        if (!hash_fp) {
+            perror("Error opening hash file");
+            exit(1);
+        }
+        fprintf(hash_fp, "%s", hash);
+        fclose(hash_fp);
+    }
 
     return 0;
-    
 }
