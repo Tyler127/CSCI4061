@@ -1,0 +1,10 @@
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D4
+Symlink found: /home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D4/f1_slink.txt
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D4/D6
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D4/D6/f6.txt
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/f1.txt
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D2
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D2/f1_hlink.txt
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D2/f2.txt
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D2/D3
+/home/lars6653/Desktop/4061/CSCI4061/Labs/Week5/D1/D2/D3/f3.txt
