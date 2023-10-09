@@ -39,6 +39,7 @@ Process Tree / Merkle Tree Implementation Plan:
         left child = fork()
         if left child:
             exec() with ./child_process and left id
+            ./child_process <blocks_folder> <hashes_folder> <N> <child_id>\n");
         right child = fork()
         if right child:
             exec() with ./child_process and right id

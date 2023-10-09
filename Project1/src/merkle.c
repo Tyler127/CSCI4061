@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     partition_file_data(input_file, n, blocks_folder);
 
 
-    // TODO: Start the recursive merkle tree computation by spawning first child process (root)
+    // Start the recursive merkle tree computation by spawning first child process (root)
     pid_t root_process = fork();
     // Child process (root of the merkle tree)
     if (root_process == 0) { 
