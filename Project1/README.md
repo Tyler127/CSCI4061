@@ -12,11 +12,17 @@ Testing Machine:
 Changes to Makefile or Existing Files:
     No changes to Makefile
 
-Contributions Plan:
+Contributions:
     All: Helped implement partition_file_data together
     Tyler: Process Tree / Merkle Tree Implementation Plan, double hash part
     Gianni: Process Tree / Merkle Tree Implementation Plan, leaf node case
     Jackson: Rest of readme, not leaf node case
+
+Assumptions:
+n/a
+
+AI Help:
+-only used for small debugging problems with child_processes.c
 
 Process Tree / Merkle Tree Implementation Plan:
 
@@ -29,7 +35,7 @@ Process Tree / Merkle Tree Implementation Plan:
         create buffer to store hash
         hash using the block file string. store in buffer
             if error such as file DNE for the leaf node if leaf node id > N:
-                exit the process
+                exit the process (hash block handles error)
         create a new file name string to store the hash in
         write the hash to the new file
         close new file
@@ -64,6 +70,7 @@ Process Tree / Merkle Tree Implementation Plan:
     close left hash file
     close right hash file
 
+
     combo hash = create a buffer for combo hash
     compute_dual_hash(combo hash, left hash buffer, right hash buffer)
 
@@ -71,3 +78,6 @@ Process Tree / Merkle Tree Implementation Plan:
     create a new file using the string ^
     write combo hash to the file
     close the file
+
+Changes made implementation:
+followed the outline created, some small changes, nothing major
