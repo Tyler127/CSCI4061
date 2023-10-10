@@ -18,11 +18,6 @@ void traverseDirectory(char *dirname) {
     struct dirent *entry;
     dir = opendir(dirname);
 
-    if (dir == NULL) {
-        perror("opendir");
-        return;
-    }
-
     // Traverse through all entries
     while ((entry = readdir(dir)) != NULL) {
         // skip . and ..
@@ -33,7 +28,7 @@ void traverseDirectory(char *dirname) {
         // concatenate dirname with the directory entry
         // use malloc
         char *path = malloc(strlen(entry->d_name) + strlen(dirname) + 2);
-        // path[0] = '\0';
+
 
         strcat(path, dirname);
         strcat(path, "/");
@@ -47,29 +42,30 @@ void traverseDirectory(char *dirname) {
             continue;
         }
 
-        // if entry is a directory
+        //          if entry is a directory
         if (S_ISDIR(buf->st_mode)) {
-            // print entry name
-            printf("%s\n", path);
+            //          print entry name
+            printf("/%s\n", path);
             traverseDirectory(path);
         }
 
-        // if entry is a regular file
+        //          if entry is a regular file
         if (S_ISREG(buf->st_mode)) {
-            // print entry name
-            printf("%s\n", path);
+            //          print entry name
+            printf("/%s\n", path);
         }
 
+        //          if entry is symbolic
         if (S_ISLNK(buf->st_mode)) {
-            // print entry name
-            printf("Symlink found: %s\n", path);
+            //      print entry name
+            printf("Symlink found: /%s\n", path);
         }
 
 
     }
-
-    closedir(dir);
     // close current directory
+    closedir(dir);
+
 }
 
 
@@ -83,9 +79,9 @@ int main(int argc, char *argv[]) {
     //          Create a new file argv[1]
     FILE *new_file = fopen(argv[1], "w");
     //          Create a hard link argv[2] for argv[1]
-    int h_link =  link(f2,f1);
+    int h_link =  link(f1,f2);
     //          Create a soft link argv[3] for argv[1]
-    int s_link = symlink(f3,f1);
+    int s_link = symlink(f1,f3);
 
     // Task 2 : Traverse directory
         traverseDirectory(argv[4]);
