@@ -1,0 +1,1 @@
+./root_directories/root2/FairySong_1.txt

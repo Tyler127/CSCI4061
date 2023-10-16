@@ -1,0 +1,7 @@
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root3/sub_1/subsub_1-1/FairySong_2.txt --> ./root_directories/root3/sub_1/FairySong_1.txt]
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root3/sub_4/subsub_4-1/FairySong_4.txt --> ./root_directories/root3/sub_1/FairySong_1.txt]
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root3/sub_2/subsub_2-1/FairySong_3.txt --> ./root_directories/root3/sub_1/FairySong_1.txt]
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root3/sub_4/subsub_4-1/Madrigal_4.txt --> ./root_directories/root3/sub_3/Madrigal_1.txt]
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root3/sub_1/subsub_1-1/Madrigal_3.txt --> ./root_directories/root3/sub_3/Madrigal_1.txt]
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root3/sub_4/subsub_4-1/WorldStage_2.txt --> ./root_directories/root3/sub_3/WorldStage_1.txt]
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root3/sub_2/subsub_2-2/Madrigal_2.txt --> ./root_directories/root3/sub_3/Madrigal_1.txt]
