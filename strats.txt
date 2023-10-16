@@ -1,4 +1,4 @@
-
+zip -r Project1.zip Project1
 
 fork(): 
     Parent Return: pid of child

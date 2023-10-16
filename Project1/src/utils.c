@@ -7,9 +7,6 @@
 void partition_file_data(char *input_file, int n, char *blocks_folder) {
     FILE *fp;
     size_t block_size, remaining_bytes, i;
-    
-    printf("%s\n", input_file);
-
 
     // Open the input file
     fp = fopen(input_file, "r");
@@ -36,25 +33,23 @@ void partition_file_data(char *input_file, int n, char *blocks_folder) {
             current_block_size = block_size;
         }
 
-        printf("%s\n", blocks_folder);
-
-        char file_path[100];
-        sprintf(file_path, "%s/%d.txt", blocks_folder, i+1);
-        printf("%s\n", file_path);
+        char file_path[PATH_MAX];
+        sprintf(file_path, "%s/%ld.txt", blocks_folder, i);
+        //printf("%s\n", file_path);
 
         FILE *new_file = fopen(file_path, "a");
 
-        char buffer[1000];
+        char buffer[1000000];
         fread(buffer, 1, current_block_size, fp);
-        // fprint("%s\n", &buffer);
 
         fprintf(new_file, "%s", buffer);
 
-
+        fclose(new_file);
     }
 
     // Close the input file
     fclose(fp);
+    printf("file partitioned\n---\n");
 }
 
 
