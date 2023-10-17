@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "../include/utils.h"
+#include <sys/wait.h>
 
 #define WRITE (O_WRONLY | O_CREAT | O_TRUNC)
 #define PERM (S_IRUSR | S_IWUSR)
@@ -40,15 +41,33 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    //TODO(overview): fork the first non_leaf process associated with root directory("./root_directories/root*")
+    // (overview): fork the first non_leaf process associated with root directory("./root_directories/root*")
 
     char* root_directory = argv[1];
     char all_filepath_hashvalue[4098]; //buffer for gathering all data transferred from child process
     memset(all_filepath_hashvalue, 0, sizeof(all_filepath_hashvalue));// clean the buffer
 
-    //TODO(step1): construct pipe
+    // Construct pipe
+    int root_pipe[2];
+    int ret = pipe(root_pipe);
+    if(ret == -1){
+        printf("Error creating pipe in root process.\n");
+        exit(-1);
+    }
 
-    //TODO(step2): fork() child process & read data from pipe to all_filepath_hashvalue
+    // fork() child process
+    pid_t child = fork();
+    if (child == 0){
+        char root_pipe_write_end_string[10];
+        sprintf(root_pipe_write_end_string, "%d", root_pipe[1]);
+        execl("./nonleaf_process", "./nonleaf_process", root_directory, root_pipe_write_end_string, NULL);
+        perror("Error executing child process.");
+    } 
+
+    // Read data from pipe to all_filepath_hashvalue
+    waitpid(child, NULL, 0);
+    read(root_pipe[0], &all_filepath_hashvalue, sizeof(all_filepath_hashvalue));
+    printf("ROOT PROCESS all_filepath_hashvalue: %s\n", all_filepath_hashvalue);
 
 
     //TODO(step3): malloc dup_list and retain list & use parse_hash() in utils.c to parse all_filepath_hashvalue
@@ -57,10 +76,11 @@ int main(int argc, char* argv[]) {
 
 
     //TODO(step4): implement the functions
-    delete_duplicate_files(dup_list,size);
-    create_symlinks(dup_list, retain_list, size);
-    redirection(dup_list, size, argv[1]);
+    // delete_duplicate_files(dup_list,size);
+    // create_symlinks(dup_list, retain_list, size);
+    // redirection(dup_list, size, argv[1]);
 
     //TODO(step5): free any arrays that are allocated using malloc!!
 
+    return 0;
 }

@@ -16,8 +16,9 @@ int main(int argc, char* argv[]) {
     }
     
     // Get <file_path> <pipe_write_end> from argv[]
-    char* file_path = argv[0];
-    int pipe_write_end = argv[1];
+    char* file_path = argv[1];
+    int pipe_write_end = atoi(argv[2]);
+    printf("IN LEAF PROCESS for %s\n", file_path);
 
     // Create the hash of given file
     char hash_value[SHA256_BLOCK_SIZE * 2 + 1];
@@ -26,34 +27,43 @@ int main(int argc, char* argv[]) {
     // Construct string write to pipe. The format is "<file_path>|<hash_value>"
     char* to_pipe_buffer = malloc(strlen(file_path) + strlen(hash_value) + 3);
     sprintf(to_pipe_buffer, "%s|%s|", file_path, hash_value);
+    printf("    to_pipe_buffer: %s\n", to_pipe_buffer);
+    printf("size of file path: %ld\n", strlen(file_path));
+    printf("size of hash value: %ld\n", strlen(hash_value));
+    printf("size of combined: %ld\n", strlen(file_path)+strlen(hash_value)+3);
+    printf("size of pipe buffa: %ld\n", strlen(to_pipe_buffer));
 
-    if(1 == 1){
+    if (pipe_write_end == 0){
         // intermediate submission
         // overview: create a file in output_file_folder("output/inter_submission/root*") and write the constructed string to the file
 
         // Extract the file_name from file_path using extract_filename() in utils.c
         char* file_name = extract_filename(file_path);
+        printf("        file name: %s\n", file_name);
 
         // Extract the root directory(e.g. root1 or root2 or root3) from file_path using extract_root_directory() in utils.c
         char* root_dir = extract_root_directory(file_path);
+        printf("        root dir: %s\n", root_dir);
 
         // Get the location of the new file (e.g. "output/inter_submission/root1" or "output/inter_submission/root2" or "output/inter_submission/root3")
         char con_string_output_file_path[PATH_MAX];
-        sprintf(con_string_output_file_path, "%s/%s/%s", output_file_folder, root_dir, file_name);
+        sprintf(con_string_output_file_path, "%s%s%s", output_file_folder, root_dir, file_name);
+        printf("    output file path: %s\n", con_string_output_file_path);
 
         // Create and write to file, and then close file
-        FILE *new_file = fopen(con_string_output_file_path, "a");
+        FILE* new_file = fopen(con_string_output_file_path, "a");
         fprintf(new_file, "%s", to_pipe_buffer);
 
         // Free any arrays that are allocated using malloc!! Free the string returned from extract_root_directory()!! It is allocated using malloc in extract_root_directory()
         free(root_dir);
         free(to_pipe_buffer);
-    }else{
-        // final submission: write the string to pipe
+    } else {
+        // Final submission: write the string to pipe
         write(pipe_write_end, to_pipe_buffer, strlen(to_pipe_buffer)); //might need sizeof here instead?
         free(to_pipe_buffer);
+        printf("END\n");
         exit(0);
-        }
+    }
 
     exit(0);
 }

@@ -9,7 +9,7 @@ OBJS = hash.o sha256.o utils.o
 LOBJS = $(addprefix $(LIBDIR)/, $(OBJS))
 
 # Make target to build for final submission
-all: root_process leaf_process nonleaf_process
+all: outfolder root_process leaf_process nonleaf_process
 
 root_process: $(SRCDIR)/root_process.c $(LIBDIR)/utils.o
 	$(CC) $(CFLAGS) -I$(INCDIR) $(SRCDIR)/root_process.c $(LIBDIR)/utils.o -o root_process
@@ -35,7 +35,7 @@ define prepare_root_dir
 
 endef
 
-inter:
+inter: outfolder leaf_process
 	$(foreach root, $(ROOT_DIRS), $(call prepare_root_dir,$(root)))
 	./leaf_process ./root_directories/root1/sub_1/WorldStage_2.txt 0
 	./leaf_process ./root_directories/root2/FairySong_1.txt 0
@@ -49,8 +49,15 @@ final:
 	$(foreach root, $(ROOT_DIRS), $(call prepare_root_dir,$(root)))
 	$(foreach root, $(ROOT_DIRS), ./root_process ./root_directories/$(root);)
 
-.PHONY: inter root1 root2 root3 final clean all
+.PHONY: inter outfolder root1 root2 root3 final clean all
+
+outfolder:
+	mkdir -p -m 0777 output/inter_submission
+	mkdir -p -m 0777 output/inter_submission/root1
+	mkdir -p -m 0777 output/inter_submission/root2
+	mkdir -p -m 0777 output/inter_submission/root3
+	mkdir -p -m 0777 output/final_submission
 
 clean:
 	rm -f root_process leaf_process nonleaf_process
-	rm -rf *.dSYM/
+	rm -rf *.dSYM/ output

@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
     pid_t root_process = fork();
     // Child process (root of the merkle tree)
     if (root_process == 0) { 
+        printf("blocks folder: %s\n", blocks_folder);
         execl("./child_process", "./child_process", blocks_folder, hashes_folder, argv[2], "0", (char *)NULL);
 
         // execl will only return if there is an error executing the process
