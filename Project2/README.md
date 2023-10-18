@@ -32,21 +32,21 @@ endfunction
 
 create symlinks:
 Function create_symlinks(dup_list, retain_list, size):
-    - For each index in the range of the size:
-        - Get the duplicate file path from dup_list
-        - Get the target file path (the file to link to) from retain_list
-        - Create a symbolic link at the duplicate file's location that points to the target file
-            - Delete the duplicate file if it exists
-            - Use symlink() to create a new symbolic link
-    - Return success/failure status
+- For each index in the range of the size:
+  - Get the duplicate file path from dup_list
+    - Get the target file path (the file to link to) from retain_list
+    - Create a symbolic link at the duplicate file's location that points to the target file
+      - Delete the duplicate file if it exists
+        - Use symlink() to create a new symbolic link
+  - Return success/failure status
 EndFunction
 
 
 delete duplicate files:
 Function delete_duplicate_files(dup_list, size):
-    - For each file in dup_list:
-        - Delete the file at the current path
-            - Use unlink() or remove() to delete the file
-    - Return success/failure status
+- For each file in dup_list:
+   - Delete the file at the current path
+     - Use unlink() or remove() to delete the file
+- Return success/failure status
 EndFunction
 
