@@ -20,14 +20,14 @@ Implementation Plan:
 redirection:
 Function redirection(dup_list, size, root_dir):
     - Determine the filename for the output file based on root_dir (e.g., "root1.txt" for "./root_directories/root1")
-    - Construct the full path for the output file in the output_file_folder
-    - Redirect standard output to the output file (using dup2 or freopen)
-    - For each symbolic link in dup_list:
+- Construct the full path for the output file in the output_file_folder
+- - Redirect standard output to the output file (using dup2 or freopen)
+ - - For each symbolic link in dup_list:
         - Read the content of the symbolic link (which should be the path to the original file)
         - Write the symbolic link's path and its content (original file path) to the output file
     - Reset standard output to its original state if necessary
     - Return success/failure status
-EndFunction
+endfunction
 
 
 create symlinks:
