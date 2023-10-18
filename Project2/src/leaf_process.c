@@ -5,7 +5,6 @@
 #include "../include/hash.h"
 #include "../include/utils.h"
 
-
 char *output_file_folder = "output/inter_submission/";
 
 int main(int argc, char* argv[]) {
@@ -22,16 +21,13 @@ int main(int argc, char* argv[]) {
 
     // Create the hash of given file
     char hash_value[SHA256_BLOCK_SIZE * 2 + 1];
+    memset(hash_value, 0, sizeof(hash_value));
     hash_data_block(hash_value, file_path);
 
     // Construct string write to pipe. The format is "<file_path>|<hash_value>"
     char* to_pipe_buffer = malloc(strlen(file_path) + strlen(hash_value) + 3);
     sprintf(to_pipe_buffer, "%s|%s|", file_path, hash_value);
     printf("    to_pipe_buffer: %s\n", to_pipe_buffer);
-    printf("size of file path: %ld\n", strlen(file_path));
-    printf("size of hash value: %ld\n", strlen(hash_value));
-    printf("size of combined: %ld\n", strlen(file_path)+strlen(hash_value)+3);
-    printf("size of pipe buffa: %ld\n", strlen(to_pipe_buffer));
 
     if (pipe_write_end == 0){
         // intermediate submission
@@ -55,6 +51,7 @@ int main(int argc, char* argv[]) {
         fprintf(new_file, "%s", to_pipe_buffer);
 
         // Free any arrays that are allocated using malloc!! Free the string returned from extract_root_directory()!! It is allocated using malloc in extract_root_directory()
+        fclose(new_file);
         free(root_dir);
         free(to_pipe_buffer);
     } else {
@@ -62,7 +59,6 @@ int main(int argc, char* argv[]) {
         write(pipe_write_end, to_pipe_buffer, strlen(to_pipe_buffer)); //might need sizeof here instead?
         free(to_pipe_buffer);
         printf("END\n");
-        exit(0);
     }
 
     exit(0);
