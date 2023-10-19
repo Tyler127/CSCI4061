@@ -70,9 +70,15 @@ int main(int argc, char* argv[]) {
     printf("ROOT PROCESS all_filepath_hashvalue: %s\n", all_filepath_hashvalue);
 
 
-    //TODO(step3): malloc dup_list and retain list & use parse_hash() in utils.c to parse all_filepath_hashvalue
+    // malloc dup_list and retain list & use parse_hash() in utils.c to parse all_filepath_hashvalue
     // dup_list: list of paths of duplicate files. We need to delete the files and create symbolic links at the location
     // retain_list: list of paths of unique files. We will create symbolic links for those files
+    char** dup_list = (char *)malloc(sizeof(char *) * 15);
+    char** retain_list = (char *)malloc(sizeof(char *) * 15);
+    for (int i=0; i < 15; i++){
+        dup_list[i] = malloc(sizeof(1024));
+        retain_list[i] = malloc(sizeof(1024));
+    }
 
 
     //TODO(step4): implement the functions

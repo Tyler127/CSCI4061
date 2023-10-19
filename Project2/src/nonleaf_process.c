@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     // Hints: Maintain an array to keep track of each read end pipe of child process
     int* pipe_read_ends = (int *)malloc(sizeof(int) * 50);
 
-    while((entry = readdir(dir)) != NULL){
+    while ((entry = readdir(dir)) != NULL){
         // skip . and ..
         if(strcmp(entry->d_name, ".") == 0){
             entry = readdir(dir);
