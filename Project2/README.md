@@ -16,6 +16,10 @@ Gianni: Implement the create_symlinks
 
 Implementation Plan:
 
+- Already finished most of nonleaf_process and root_process so the
+pseudocode for those is not included here.
+- All we need is to implement the helper functions below:
+
 
 redirection(dup_list, size, root_dir):
     Determine the filename for the output file based on root_dir
@@ -25,8 +29,6 @@ redirection(dup_list, size, root_dir):
             Read the content of the symbolic link
             Write the symbolic link's path to the output file
     Return
-
-
 
 
 Function create_symlinks(dup_list, retain_list, size):
@@ -42,5 +44,3 @@ Function delete_duplicate_files(dup_list, size):
     For file in dup_list:
         Delete file
     Return 
-
-
