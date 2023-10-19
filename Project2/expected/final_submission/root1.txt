@@ -1,0 +1,3 @@
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root1/sub_2/Madrigal_2.txt --> ./root_directories/root1/sub_1/Madrigal_1.txt]
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root1/sub_1/WorldStage_2.txt --> ./root_directories/root1/sub_3/WorldStage_1.txt]
+[<path of symbolic link> --> <path of retained file>] : [./root_directories/root1/sub_3/FairySong_2.txt --> ./root_directories/root1/sub_2/FairySong_1.txt]
