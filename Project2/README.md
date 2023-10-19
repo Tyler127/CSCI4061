@@ -7,17 +7,17 @@ Testing Machine: login01.cselabs.umn.edu
 Changes to Makefile or Existing Files: 
 added "out" folder command, makeOutFolder, used TA given makefile from piazza
 
-Contributions:
-all: helped complete leaf process
-Jackson: created readme, delete duplicate files
-Tyler: helped with leaf process, creating symlinks
-Gianni: making root process, helped with redirection
+Outline of Contributions:
+
+Jackson: implement delete_duplicate_files and aid in redirection and create_symlinks
+Tyler: Implement the redirection function
+Gianni: Implement the create_symlinks
 
 
 Implementation Plan:
 
 
-Function redirection(dup_list, size, root_dir):
+redirection(dup_list, size, root_dir):
     Determine the filename for the output file based on root_dir
     Make the full path for the output file in the output_file_folder
     Redirect s/o to the output file with a pipe
