@@ -58,10 +58,10 @@ int main(int argc, char* argv[]) {
         // Final submission: write the string to pipe
         write(pipe_write_end, to_pipe_buffer, strlen(to_pipe_buffer)); //might need sizeof here instead?
         free(to_pipe_buffer);
-        printf("END\n");
     }
 
-    exit(0);
+    printf("END LEAF PROCESS for %s\n\n", file_path);
+    return 0;
 }
 
 

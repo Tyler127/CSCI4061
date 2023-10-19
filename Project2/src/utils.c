@@ -39,8 +39,8 @@ void remove_filepath_duplicate(char **dup_list, char **retain_list, int *size) {
         for (int j = i + 1; j < *size; ) {
             if (strcmp(dup_list[i], dup_list[j]) == 0) {
                 // Duplicate found, free the memory of the duplicate string
-                free(dup_list[j]);
-                free(retain_list[j]);
+                free(dup_list[j]);                                            // CHANGE: COMMENTED THIS OUT
+                free(retain_list[j]);                                         // CHANGE: COMMENTED THIS OUT
 
                 // Shift all the elements after j to the left
                 for (int k = j; k < *size - 1; k++) {
@@ -60,10 +60,11 @@ void sanitize_dup_retain(char **dup_list, char **retain_list, int size) {
     for (int m = 0; m < size; m++) {
         for (int n = 0; n < size; n++) {
             if (strcmp(retain_list[m], dup_list[n]) == 0) {
+                //printf("ret_list == dup_list: \n    ret: %s\n    dup: %s\n", retain_list[m], dup_list[n]);
                 // Found a match, replace retain_list[m] with retain_list[n]
                 // But first, if retain_list[m] was dynamically allocated, free it
                 if (retain_list[m] != retain_list[n]) {
-                    free(retain_list[m]);
+                    free(retain_list[m]);                                     // CHANGE: COMMENTED THIS OUT
                     retain_list[m] = retain_list[n];
                 }
                 break; // No need to continue inner loop for this m once a match is found
@@ -102,10 +103,14 @@ int parse_hash(char * file_hashes, char**dup_list, char** retain_list){
                 if(file_index_1 > file_index_2) {
                     strcpy(dup_list[index], array[j - 1]);
                     strcpy(retain_list[index], array[i - 1]);
+                    //printf(" dup_list addition on loop %d %d --------------------| %s\n", i,j, array[j - 1]);
+                    //printf(" retain_list addition on loop %d %d -----------------| %s\n", i,j, array[i - 1]);
 
                 }else{
                     strcpy(dup_list[index], array[i - 1]);
                     strcpy(retain_list[index], array[j - 1]);
+                    //printf(" else branch: dup_list addition on loop %d %d -------| %s\n", i,j, array[j - 1]);
+                    //printf(" else branch: retain_list addition on loop %d %d ----| %s\n", i,j, array[i - 1]);
                 }
 
                 index++;
@@ -113,7 +118,7 @@ int parse_hash(char * file_hashes, char**dup_list, char** retain_list){
         }
     }
     // remove duplicate filepath in dup_list get from file_hashes
-    remove_filepath_duplicate(dup_list,retain_list,&index);
+    remove_filepath_duplicate(dup_list, retain_list, &index);
     // files in retain_list might also appear in dup_list,
     // since one file may have more than 2 duplicates
     sanitize_dup_retain(dup_list,retain_list,index);
