@@ -94,8 +94,8 @@ int parse_hash(char * file_hashes, char**dup_list, char** retain_list){
         for (int j = i + 2; j < count*2; j+=2){
             if (  strcmp(array[i], "") != 0 && strcmp(array[i], array[j]) == 0) {
                 // record the filepath of duplicate file
-                dup_list[index] = malloc(sizeof(char)* 128);
-                retain_list[index] = malloc(sizeof(char)* 128);
+                dup_list[index] = malloc(sizeof(char) * 128);
+                retain_list[index] = malloc(sizeof(char )* 128);
                 char* file_index_str_1 = &array[j-1][strlen(array[j-1])-5];
                 char* file_index_str_2 = &array[i-1][strlen(array[i-1])-5];
                 int file_index_1 = atoi(&file_index_str_1[0]);

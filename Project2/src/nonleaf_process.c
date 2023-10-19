@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 
     // Read from the pipes constructed for child processes
     for (int i = 0; i < num_children; i++){
-        // Create a buffer to store children hash data
+        // Create a buffer to store child hash data
         char buffer[4096];
         memset(buffer, 0, sizeof(buffer));
 

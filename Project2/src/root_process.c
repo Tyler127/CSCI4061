@@ -161,10 +161,10 @@ int main(int argc, char* argv[]){
         free(dup_list[i]);
         printf("freed dup_list[%d]\n", i);
     }
-    // for (int i = 0; i < file_count; i++) {
-    //     free(retain_list[i]);
-    //     printf("freed ret %d\n", i);
-    // }
+    for (int i = 0; i < file_count; i++) {
+        free(retain_list[i]);
+        printf("freed ret %d\n", i);
+    }
     free(dup_list);
     //free(retain_list);
 
