@@ -11,7 +11,6 @@
 #define PERM (S_IRUSR | S_IWUSR)
 char *output_file_folder = "output/final_submission/";
 
-void redirection(char **dup_list, int size, char* root_dir){
     // TODO(overview): redirect standard output to an output file in output_file_folder("output/final_submission/")
     // TODO(step1): determine the filename based on root_dir. e.g. if root_dir is "./root_directories/root1", the output file's name should be "root1.txt"
 
@@ -19,17 +18,65 @@ void redirection(char **dup_list, int size, char* root_dir){
 
     //TODO(step3): read the content each symbolic link in dup_list, write the path as well as the content of symbolic link to output file(as shown in expected)
 
+void redirection(char **dup_list, int size, char* root_dir) {
+    // Constructing the filename
+    char output_file_path[PATH_MAX];
+    snprintf(output_file_path, PATH_MAX, "%s%s.txt", output_file_folder, extract_filename(root_dir));
+
+    // Redirecting standard output
+    fflush(stdout); 
+    int original_stdout = dup(STDOUT_FILENO);
+    int file = open(output_file_path, WRITE, PERM);
+    if (file < 0) {
+        perror("Failed to open file");
+        exit(EXIT_FAILURE);
+    }
+    if (dup2(file, STDOUT_FILENO) < 0) {
+        perror("Failed to redirect stdout");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < size; i++) {
+        char buffer[PATH_MAX];
+        ssize_t len;
+
+        if ((len = readlink(dup_list[i], buffer, sizeof(buffer)-1)) != -1) {
+            buffer[len] = '\0';
+            printf("%s -> %s\n", dup_list[i], buffer);
+        } else {
+            perror("Failed to read symlink");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // Restoring standard output
+    fflush(stdout); 
+    dup2(original_stdout, STDOUT_FILENO);
+    close(original_stdout);
+    close(file);
 }
 
-void create_symlinks(char **dup_list, char **retain_list, int size) {
+
     //TODO(): create symbolic link at the location of deleted duplicate file
     //TODO(): dup_list[i] will be the symbolic link for retain_list[i]
-
+void create_symlinks(char **dup_list, char **retain_list, int size) {
+    for (int i = 0; i < size; i++) {
+        if (symlink(retain_list[i], dup_list[i]) != 0) {
+            perror("Failed to create symlink");
+            exit(EXIT_FAILURE);
+        }
+    }
 }
 
-void delete_duplicate_files(char **dup_list, int size) {
-    //TODO(): delete duplicate files, each element in dup_list is the path of the duplicate file
 
+
+void delete_duplicate_files(char **dup_list, int size) {
+    for (int i = 0; i < size; i++) {
+        if (remove(dup_list[i]) != 0) {
+            perror("Failed to delete file");
+            exit(EXIT_FAILURE);
+        }
+    }
 }
 
 // ./root_directories <directory>
@@ -80,6 +127,11 @@ int main(int argc, char* argv[]) {
         retain_list[i] = malloc(sizeof(1024));
     }
 
+    
+
+
+
+
 
     //TODO(step4): implement the functions
     // delete_duplicate_files(dup_list,size);
@@ -87,6 +139,13 @@ int main(int argc, char* argv[]) {
     // redirection(dup_list, size, argv[1]);
 
     //TODO(step5): free any arrays that are allocated using malloc!!
+    // Cleanup
+    for (int i = 0; i < size; ++i) {
+        free(dup_list[i]);
+        free(retain_list[i]);
+    }
+    free(dup_list);
+    free(retain_list);
 
     return 0;
 }
