@@ -9,5 +9,4 @@
 ./root_directories/root3/sub_1/subsub_1-1/Madrigal_3.txt|9d82ba3636171f1dc6715b509dab6e6e94203471b275e99c1753e3b02e87b020|
 ./root_directories/root3/sub_1/FairySong_1.txt|f709e59a17b350738160fca31a192d11020fc0ee3190444e01fd908435811eb1|
 
-
 valgrind --leak-check=full  ./root_process ./root_directories/root3

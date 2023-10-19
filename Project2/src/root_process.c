@@ -151,9 +151,9 @@ int main(int argc, char* argv[]){
 
 
     //TODO(step4): implement the functions
-    // delete_duplicate_files(dup_list,size);
-    // create_symlinks(dup_list, retain_list, size);
-    // redirection(dup_list, size, argv[1]);
+    delete_duplicate_files(dup_list, file_count);
+    create_symlinks(dup_list, retain_list, file_count);
+    redirection(dup_list, file_count, argv[1]);
 
     // Free any arrays that are allocated using malloc
     // Cleanup
@@ -161,12 +161,12 @@ int main(int argc, char* argv[]){
         free(dup_list[i]);
         printf("freed dup_list[%d]\n", i);
     }
-    for (int i = 0; i < file_count; i++) {
-        free(retain_list[i]);
-        printf("freed ret %d\n", i);
-    }
+    // for (int i = 0; i < file_count; i++) {
+    //     free(retain_list[i]);
+    //     printf("freed ret %d\n", i);
+    // }
     free(dup_list);
-    //free(retain_list);
+    free(retain_list);
 
     printf("ROOT PROCESS DONE\n");
     return 0;
