@@ -1,27 +1,27 @@
-Project Group Number: 3
+# Project Group Number: 3
 
-Group Members: Gianni Guadagno - guada028 Jackson Reichow - reich656 Tyler Larson - lars6653
+## Group Members: 
+- Gianni Guadagno - guada028 
+- Jackson Reichow - reich656 
+- Tyler Larson - lars6653
 
-Testing Machine: login01.cselabs.umn.edu
+## Testing Machine: 
+- login01.cselabs.umn.edu
 
-Changes to Makefile or Existing Files: 
-added "out" folder command, makeOutFolder, used TA given makefile from piazza
+## Changes to Makefile or Existing Files: 
+- added "outfolder" command as a dependency of "all" and "inter", which was in TA given makefile from Piazza
 
-Outline of Contributions:
+## Outline of Contributions:
+- Jackson: implement delete_duplicate_files and aid in redirection and create_symlinks
+- Tyler: Implement the redirection function
+- Gianni: Implement the create_symlinks
 
-Jackson: implement delete_duplicate_files and aid in redirection and create_symlinks
-Tyler: Implement the redirection function
-Gianni: Implement the create_symlinks
-
-
-Implementation Plan:
-
+## Implementation Plan:
 - Already finished most of nonleaf_process and root_process so the
 pseudocode for those is not included here.
 - All we need is to implement the helper functions below:
-
-
-redirection(dup_list, size, root_dir):
+```
+Function redirection(dup_list, size, root_dir):
     Determine the filename for the output file based on root_dir
     Make the full path for the output file in the output_file_folder
     Redirect s/o to the output file with a pipe
@@ -44,3 +44,4 @@ Function delete_duplicate_files(dup_list, size):
     For file in dup_list:
         Delete file
     Return 
+```
