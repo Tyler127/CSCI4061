@@ -12,6 +12,7 @@
 - added "outfolder" command as a dependency of "all" and "inter", which was in TA given makefile from Piazza
 
 ## Outline of Contributions:
+- All: leaf_process.c
 - Jackson: implement delete_duplicate_files and aid in redirection and create_symlinks
 - Tyler: Implement the redirection function
 - Gianni: Implement the create_symlinks
