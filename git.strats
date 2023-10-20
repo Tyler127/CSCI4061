@@ -1,0 +1,3 @@
+for bad mistakes:
+    git reset --hard HEAD~
+
