@@ -40,7 +40,7 @@ void redirection(char** dup_list, int size, char* root_dir){
 
         if ((len = readlink(dup_list[i], buffer, sizeof(buffer)-1)) != -1){
             buffer[len] = '\0';
-            printf("%s -> %s\n", dup_list[i], buffer);
+            printf("%s --> %s\n", dup_list[i], buffer);
         } else {
             perror("Failed to read symlink");
             exit(1);
