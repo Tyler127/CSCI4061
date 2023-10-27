@@ -11,11 +11,6 @@
 #define PERM (S_IRUSR | S_IWUSR)
 char *output_file_folder = "output/final_submission/";
 
-// TODO(overview): redirect standard output to an output file in output_file_folder("output/final_submission/")
-// TODO(step1): determine the filename based on root_dir. e.g. if root_dir is "./root_directories/root1", the output file's name should be "root1.txt"
-// TODO(step2): redirect standard output to output file (output/final_submission/root*.txt)
-// TODO(step3): read the content each symbolic link in dup_list, write the path as well as the content of symbolic link to output file(as shown in expected)
-
 void redirection(char** dup_list, int size, char* root_dir){
     // Constructing the filename
     char output_file_path[PATH_MAX];
@@ -33,14 +28,15 @@ void redirection(char** dup_list, int size, char* root_dir){
         perror("Failed to redirect stdout");
         exit(1);
     }
-
+    // Loop through each element in the dup_list array up to the specified size
     for (int i = 0; i < size; i++){
         char buffer[PATH_MAX];
         ssize_t len;
-
+        // Try to read the target path of the symbolic link stored at dup_list[i]
+        // If successful, the length of the path will be stored in len
         if ((len = readlink(dup_list[i], buffer, sizeof(buffer)-1)) != -1){
             buffer[len] = '\0';
-            printf("[<path of symbolic link> --> <path of retained file>] : %s --> %s\n", dup_list[i], buffer);
+            printf("[<path of symbolic link> --> <path of retained file>] : [%s --> %s]\n", dup_list[i], buffer);
         } else {
             perror("Failed to read symlink");
             exit(1);
@@ -53,9 +49,8 @@ void redirection(char** dup_list, int size, char* root_dir){
     close(original_stdout);
     close(file);
 }
-
-    //TODO(): create symbolic link at the location of deleted duplicate file
-    //TODO(): dup_list[i] will be the symbolic link for retain_list[i]
+// This function creates symbolic links for each element in the dup_list array
+// pointing to the corresponding element in the retain_list array.
 void create_symlinks(char** dup_list, char** retain_list, int size){
     for (int i = 0; i < size; i++){
         if (symlink(retain_list[i], dup_list[i]) != 0){
@@ -64,7 +59,7 @@ void create_symlinks(char** dup_list, char** retain_list, int size){
         }
     }
 }
-
+// This function deletes each file specified in the dup_list array
 void delete_duplicate_files(char** dup_list, int size){
     for (int i = 0; i < size; i++){
         if (remove(dup_list[i]) != 0){
@@ -149,8 +144,6 @@ int main(int argc, char* argv[]){
         }
     }
 
-
-    //TODO(step4): implement the functions
     delete_duplicate_files(dup_list, file_count);
     create_symlinks(dup_list, retain_list, file_count);
     redirection(dup_list, file_count, argv[1]);
@@ -171,3 +164,4 @@ int main(int argc, char* argv[]){
     printf("ROOT PROCESS DONE\n");
     return 0;
 }
+

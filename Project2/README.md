@@ -11,9 +11,9 @@
 ## Changes to Makefile or Existing Files: 
 - added "outfolder" command as a dependency of "all" and "inter", which was in TA given makefile from Piazza
 
-## Outline of Contributions:
+## Actual Contributions:
 - All: leaf_process.c
-- Jackson: implement delete_duplicate_files and aid in redirection and create_symlinks
+- Jackson: implement delete_duplicate_files and aid in redirection and create_symlinks and README
 - Tyler: Implement the redirection function
 - Gianni: Implement the create_symlinks
 
@@ -46,3 +46,6 @@ Function delete_duplicate_files(dup_list, size):
         Delete file
     Return 
 ```
+
+AI use:
+-used to help debug certain failed test cases, revealed missing space/bracket in printing process
