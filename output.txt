@@ -1,0 +1,22 @@
+reich656@csel-remote-lnx-01:/home/reich656/Desktop/csci4061/lab7 $ make all
+gcc -pthread -o main matmul.c
+./main 10000 10000 1
+Sequential Time: 493 ms
+Parallel Time: 417 ms
+Seq C = Par C
+./main 10000 10000 2
+Sequential Time: 390 ms
+Parallel Time: 203 ms
+Seq C = Par C
+./main 10000 10000 4
+Sequential Time: 393 ms
+Parallel Time: 112 ms
+Seq C = Par C
+./main 10000 10000 8
+Sequential Time: 391 ms
+Parallel Time: 119 ms
+Seq C = Par C
+./main 10000 10000 16
+Sequential Time: 391 ms
+Parallel Time: 106 ms
+Seq C = Par C
