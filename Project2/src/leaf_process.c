@@ -30,8 +30,6 @@ int main(int argc, char* argv[]) {
     printf("    to_pipe_buffer: %s\n", to_pipe_buffer);
 
     if (pipe_write_end == 0){
-        // intermediate submission
-        // overview: create a file in output_file_folder("output/inter_submission/root*") and write the constructed string to the file
 
         // Extract the file_name from file_path using extract_filename() in utils.c
         char* file_name = extract_filename(file_path);
@@ -55,13 +53,13 @@ int main(int argc, char* argv[]) {
         free(root_dir);
         free(to_pipe_buffer);
     } else {
-        // Final submission: write the string to pipe
+        //write the string to pipe
         write(pipe_write_end, to_pipe_buffer, strlen(to_pipe_buffer)); //might need sizeof here instead?
         free(to_pipe_buffer);
-        printf("END\n");
     }
 
-    exit(0);
+    printf("END LEAF PROCESS for %s\n\n", file_path);
+    return 0;
 }
 
 

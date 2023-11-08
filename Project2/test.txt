@@ -1,0 +1,12 @@
+./root_directories/root3/sub_3/WorldStage_1.txt|dcade7462a93a6e8fc3ae64db4b5aae1af2e8b3131bcaabeae8d306a8b629135|
+./root_directories/root3/sub_3/Madrigal_1.txt|9d82ba3636171f1dc6715b509dab6e6e94203471b275e99c1753e3b02e87b020|
+./root_directories/root3/sub_4/subsub_4-1/WorldStage_2.txt|dcade7462a93a6e8fc3ae64db4b5aae1af2e8b3131bcaabeae8d306a8b629135|
+./root_directories/root3/sub_4/subsub_4-1/FairySong_4.txt|f709e59a17b350738160fca31a192d11020fc0ee3190444e01fd908435811eb1|
+./root_directories/root3/sub_4/subsub_4-1/Madrigal_4.txt|9d82ba3636171f1dc6715b509dab6e6e94203471b275e99c1753e3b02e87b020|
+./root_directories/root3/sub_2/subsub_2-1/FairySong_3.txt|f709e59a17b350738160fca31a192d11020fc0ee3190444e01fd908435811eb1|
+./root_directories/root3/sub_2/subsub_2-2/Madrigal_2.txt|9d82ba3636171f1dc6715b509dab6e6e94203471b275e99c1753e3b02e87b020|
+./root_directories/root3/sub_1/subsub_1-1/FairySong_2.txt|f709e59a17b350738160fca31a192d11020fc0ee3190444e01fd908435811eb1|
+./root_directories/root3/sub_1/subsub_1-1/Madrigal_3.txt|9d82ba3636171f1dc6715b509dab6e6e94203471b275e99c1753e3b02e87b020|
+./root_directories/root3/sub_1/FairySong_1.txt|f709e59a17b350738160fca31a192d11020fc0ee3190444e01fd908435811eb1|
+
+valgrind --leak-check=full  ./root_process ./root_directories/root3
