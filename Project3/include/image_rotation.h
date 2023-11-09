@@ -43,7 +43,7 @@
 typedef struct request_queue
 {
     //what data do you need here?
-}request_t; 
+} request_t; 
 
 typedef struct processing_args
 {
