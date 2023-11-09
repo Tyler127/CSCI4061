@@ -27,8 +27,6 @@
 #include "stb_image.h"
 #include "stb_image_write.h"
 
-
-
 /********************* [ Helpful Macro Definitions ] **********************/
 #define BUFF_SIZE 1024 
 #define LOG_FILE_NAME "request_log"               //Standardized log file name
@@ -36,24 +34,33 @@
 #define MAX_THREADS 100                             //Maximum number of threads
 #define MAX_QUEUE_LEN 100                           //Maximum queue length
 
+/********************* [ Helpful Typedefs ] ************************/
 
+// Structure for queue elements
+typedef struct node {
+    char* file_path;  // File path for the image to process
+    int rotation_angle;  // The angle to rotate the image
+} node_t; 
 
-/********************* [ Helpful Typedefs        ] ************************/
+// Structure for the queue
+typedef struct request_queue {
+    node_t items[MAX_QUEUE_LEN];        // Array of queue items
+    int size;                           // Current size of the queue
+    int front;                          // Index of the front item
+    int rear;                           // Index of the rear item
+} request_queue_t; 
 
-typedef struct request_queue
-{
-    //what data do you need here?
-}request_t; 
-
-typedef struct processing_args
-{
-   //what data do you need here?
+// Structure for processing thread arguments
+typedef struct processing_args {
+    char* directory_path;  // Path to the directory containing images
+    int rotation_angle;    // The angle to rotate the images
+    request_queue_t* request_queue;  // Pointer to the request queue
+    FILE* log_file;        // File pointer for logging
 } processing_args_t;
 
-
-/********************* [ Function Prototypes       ] **********************/
+/********************* [ Function Prototypes ] **********************/
 void *processing(void *args); 
-void * worker(void *args); 
+void *worker(void *args); 
 void log_pretty_print(FILE* to_write, int threadId, int requestNumber, char * file_name);
 
-#endif
+#endif // IMAGE_ROTATION_H_

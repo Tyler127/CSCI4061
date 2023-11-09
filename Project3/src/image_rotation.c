@@ -1,4 +1,34 @@
 #include "image_rotation.h"
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
+
+// Initialize the queue
+void queue_init(request_queue_t *q) {
+    q->size = 0;
+    q->front = 0;
+    q->rear = -1;
+}
+
+
+// Add an item to the queue
+void queue_enqueue(request_queue_t *q, node_t item) { 
+    // Enqueue the item
+    q->rear = (q->rear + 1) % MAX_QUEUE_LEN;
+    q->items[q->rear] = item;
+    q->size++;
+
+}
+
+// Remove an item from the queue
+node_t queue_dequeue(request_queue_t *q) {
+    // Dequeue the item
+    node_t item = q->items[q->front];
+    q->front = (q->front + 1) % MAX_QUEUE_LEN;
+    q->size--;
+    return item;
+}
+
  
  
 //Global integer to indicate the length of the queue??
@@ -42,12 +72,34 @@ void log_pretty_print(FILE* to_write, int threadId, int requestNumber, char * fi
     5: The processing thread will cross check if the condition from step 4 is met and it will signal to the worker to exit and it will exit.
 
 */
+void* processing(void *args) {
+    processing_args_t *processing_args = (processing_args_t *)args;
+    DIR *dir;
+    struct dirent *entry;
 
-void *processing(void *args)
-{
+    if ((dir = opendir(processing_args->directory_path)) == NULL) {
+        perror("opendir() error");
+        exit(EXIT_FAILURE);
+    }
 
-
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_REG) {  // Check for regular file
+            char* file_path = malloc(PATH_MAX);
+            sprintf(file_path, "%s/%s", processing_args->directory_path, entry->d_name);
+            
+            node_t item;
+            item.file_path = file_path;
+            item.rotation_angle = processing_args->rotation_angle;
+            
+            // Enqueue the item
+            queue_enqueue(processing_args->request_queue, item);
+        }
+    }
+    
+    closedir(dir);
+    return NULL;
 }
+
 
 /*
     1: The worker threads takes an int ID as a parameter
@@ -67,27 +119,23 @@ void *processing(void *args)
     9: You may need different lock depending on the job.  
 
 */
-
-
-void * worker(void *args)
+void* worker(void *args)
 {
-
-
+    int thread_id = *(int*)args;
+    printf("Worker thread %d \n", thread_id);
+    return NULL;
         /*
             Stbi_load takes:
                 A file name, int pointer for width, height, and bpp
 
         */
-
        // uint8_t* image_result = stbi_load("??????","?????", "?????", "???????",  CHANNEL_NUM);
-        
-
-        uint8_t **result_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
-        uint8_t** img_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
-        for(int i = 0; i < width; i++){
-            result_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
-            img_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
-        }
+       // uint8_t** result_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
+        //uint8_t** img_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
+       // for(int i = 0; i < width; i++){
+         //   result_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
+         //   img_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
+       // }
         /*
         linear_to_image takes: 
             The image_result matrix from stbi_load
@@ -96,23 +144,15 @@ void * worker(void *args)
         
         */
         //linear_to_image("??????", "????", "????", "????");
-        
-
         ////TODO: you should be ready to call flip_left_to_right or flip_upside_down depends on the angle(Should just be 180 or 270)
         //both take image matrix from linear_to_image, and result_matrix to store data, and width and height.
         //Hint figure out which function you will call. 
         //flip_left_to_right(img_matrix, result_matrix, width, height); or flip_upside_down(img_matrix, result_matrix ,width, height);
-
-
-        
-        
+     
         //uint8_t* img_array = NULL; ///Hint malloc using sizeof(uint8_t) * width * height
-    
-
         ///TODO: you should be ready to call flatten_mat function, using result_matrix
         //img_arry and width and height; 
         //flatten_mat("??????", "??????", "????", "???????");
-
 
         ///TODO: You should be ready to call stbi_write_png using:
         //New path to where you wanna save the file,
@@ -121,8 +161,6 @@ void * worker(void *args)
         //img_array
         //width*CHANNEL_NUM
        // stbi_write_png("??????", "?????", "??????", CHANNEL_NUM, "??????", "?????"*CHANNEL_NUM);
-    
-
 }
 
 /*
@@ -132,17 +170,43 @@ void * worker(void *args)
         Create the threads needed
         Join on the created threads
         Clean any data if needed. 
-
-
 */
-
-int main(int argc, char* argv[])
-{
-    if(argc != 5)
-    {
-        fprintf(stderr, "Usage: File Path to image dirctory, File path to output dirctory, number of worker thread, and Rotation angle\n");
+int main(int argc, char* argv[]) {
+    if (argc != 5) {
+        fprintf(stderr, "Usage: %s <image directory> <output directory> <number of worker threads> <rotation angle>\n", argv[0]);
+        exit(EXIT_FAILURE);
     }
-    
-    ///TODO: 
 
+    // Parse arguments
+    char *image_dir = argv[1];
+    char *output_dir = argv[2];
+    int num_workers = atoi(argv[3]);
+    int rotation_angle = atoi(argv[4]);
+
+    // Initialize queue
+    request_queue_t request_queue;
+    queue_init(&request_queue);
+
+    // Create processing thread
+    processing_args_t processing_args = {image_dir, rotation_angle, &request_queue};
+    pthread_t processing_thread;
+    pthread_create(&processing_thread, NULL, processing, &processing_args);
+
+    // Create worker threads
+    pthread_t workers[num_workers];
+    int thread_ids[num_workers];
+    for (int i = 0; i < num_workers; ++i) {
+        thread_ids[i] = i;
+        pthread_create(&workers[i], NULL, worker, &thread_ids[i]);
+    }
+
+    // Wait for processing thread to finish
+    pthread_join(processing_thread, NULL);
+
+    // Join worker threads
+    for (int i = 0; i < num_workers; ++i) {
+        pthread_join(workers[i], NULL);
+    }
+
+    return 0;
 }
