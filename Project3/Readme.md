@@ -13,7 +13,7 @@
 
 ## Contribution Plan:
 - All: README
-- Jackson: 
+- Jackson: Implement portions for pngs, finish that portion, help with the worker threads.
 - Tyler: Implement the worker threads.
 - Gianni: Fully implement the Mutex locks and conditions, help with bug fixing.
 
