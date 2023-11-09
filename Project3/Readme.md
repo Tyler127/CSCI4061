@@ -12,10 +12,10 @@
 - None
 
 ## Contribution Plan:
-- All: README
-- Jackson: Implement portions for pngs, finish that portion, help with the worker threads.
+- All: README, Bug Fix.
+- Jackson: Implement portions for pngs, implement logging help with the worker threads.
 - Tyler: Implement the worker threads.
-- Gianni: Fully implement the Mutex locks and conditions, help with bug fixing.
+- Gianni: Fully implement the Mutex locks and conditions, help with bug fixing as well as logs.
 
 ## Implementation plan for the worker threads:
 - Create all the worker thread using pthread_create with the main thread.
