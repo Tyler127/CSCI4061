@@ -15,7 +15,7 @@
 - All: README, Bug Fix.
 - Jackson: Implement portions for pngs, implement logging help with the worker threads.
 - Tyler: Implement the worker threads.
-- Gianni: Fully implement the Mutex locks and conditions, help with bug fixing as well as logs.
+- Gianni: Fully implement the Mutex locks and conditions, help with logs.
 
 ## Implementation plan for the worker threads:
 - Create all the worker thread using pthread_create with the main thread.
