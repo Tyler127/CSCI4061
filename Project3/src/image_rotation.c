@@ -10,26 +10,21 @@ void queue_init(request_queue_t *q) {
     q->rear = -1;
 }
 
-
 // Add an item to the queue
 void queue_enqueue(request_queue_t *q, node_t item) { 
-    // Enqueue the item
     q->rear = (q->rear + 1) % MAX_QUEUE_LEN;
     q->items[q->rear] = item;
     q->size++;
-
 }
 
 // Remove an item from the queue
 node_t queue_dequeue(request_queue_t *q) {
-    // Dequeue the item
     node_t item = q->items[q->front];
     q->front = (q->front + 1) % MAX_QUEUE_LEN;
     q->size--;
     return item;
 }
 
- 
  
 //Global integer to indicate the length of the queue??
 //Global integer to indicate the number of worker threads
@@ -120,11 +115,11 @@ void* processing(void *args) {
 
 */
 void* worker(void *args)
-void* worker(void *args)
 {
-    int thread_id = *(int*)args;
+    int thread_id = *(int*)args; // Casts to int pointer then dereferences
     printf("Worker thread %d \n", thread_id);
     return NULL;
+
         /*
             Stbi_load takes:
                 A file name, int pointer for width, height, and bpp
@@ -172,13 +167,14 @@ void* worker(void *args)
         Join on the created threads
         Clean any data if needed. 
 */
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) 
+{
     if (argc != 5) {
         fprintf(stderr, "Usage: %s <image directory> <output directory> <number of worker threads> <rotation angle>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    // Parse arguments
+    // Read arguments
     char *image_dir = argv[1];
     char *output_dir = argv[2];
     int num_workers = atoi(argv[3]);
@@ -210,16 +206,4 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
-*/
-int main(int argc, char* argv[])
-{
-    if(argc != 5)
-    {
-        fprintf(stderr, "Usage: File Path to image dirctory, File path to output dirctory, number of worker thread, and Rotation angle\n");
-    }
-
-    
-    
-    ///TODO: 
-
 }
