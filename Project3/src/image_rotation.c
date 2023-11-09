@@ -42,8 +42,7 @@ void log_pretty_print(FILE* to_write, int threadId, int requestNumber, char * fi
     5: The processing thread will cross check if the condition from step 4 is met and it will signal to the worker to exit and it will exit.
 
 */
-
-void *processing(void *args)
+void* processing(void *args)
 {
 
 
@@ -67,9 +66,7 @@ void *processing(void *args)
     9: You may need different lock depending on the job.  
 
 */
-
-
-void * worker(void *args)
+void* worker(void *args)
 {
 
 
@@ -82,7 +79,7 @@ void * worker(void *args)
        // uint8_t* image_result = stbi_load("??????","?????", "?????", "???????",  CHANNEL_NUM);
         
 
-        uint8_t **result_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
+        uint8_t** result_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
         uint8_t** img_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
         for(int i = 0; i < width; i++){
             result_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
@@ -132,16 +129,15 @@ void * worker(void *args)
         Create the threads needed
         Join on the created threads
         Clean any data if needed. 
-
-
 */
-
 int main(int argc, char* argv[])
 {
     if(argc != 5)
     {
         fprintf(stderr, "Usage: File Path to image dirctory, File path to output dirctory, number of worker thread, and Rotation angle\n");
     }
+
+    
     
     ///TODO: 
 
