@@ -120,6 +120,7 @@ void* processing(void *args) {
 
 */
 void* worker(void *args)
+void* worker(void *args)
 {
     int thread_id = *(int*)args;
     printf("Worker thread %d \n", thread_id);
@@ -209,4 +210,16 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
+*/
+int main(int argc, char* argv[])
+{
+    if(argc != 5)
+    {
+        fprintf(stderr, "Usage: File Path to image dirctory, File path to output dirctory, number of worker thread, and Rotation angle\n");
+    }
+
+    
+    
+    ///TODO: 
+
 }
