@@ -114,6 +114,7 @@ void *pizzaConsumer(void *args){
         fflush(stdout);
     }
 }
+
 int main(int argc, char *argv[]){
     int n_pizzas = 20;
     int n_pizza_on_stand = 0;

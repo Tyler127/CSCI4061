@@ -37,14 +37,14 @@
 /********************* [ Helpful Typedefs ] ************************/
 
 // Structure for queue elements
-typedef struct node {
+typedef struct request {
     char* file_path;  // File path for the image to process
     int rotation_angle;  // The angle to rotate the image
-} node_t; 
+} request_t; 
 
 // Structure for the queue
 typedef struct request_queue {
-    node_t items[MAX_QUEUE_LEN];        // Array of queue items
+    request_t requests[MAX_QUEUE_LEN];  // Array of queue items
     int size;                           // Current size of the queue
     int front;                          // Index of the front item
     int rear;                           // Index of the rear item
@@ -62,5 +62,8 @@ typedef struct processing_args {
 void *processing(void *args); 
 void *worker(void *args); 
 void log_pretty_print(FILE* to_write, int threadId, int requestNumber, char * file_name);
+void queue_init(request_queue_t *q);
+void queue_enqueue(request_queue_t *q, request_t request);
+request_t queue_dequeue(request_queue_t *q);
 
 #endif // IMAGE_ROTATION_H_
