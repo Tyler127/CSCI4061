@@ -329,7 +329,7 @@ int main(int argc, char* argv[]){
     printf("output dir global: %s\n", output_directory);
 
     // Open the log file
-    log_file = fopen("request_log.txt", "w");
+    log_file = fopen("request_log", "a");
     if (log_file == NULL) {
         printf("Error creating log file.\n");
         return 1;
