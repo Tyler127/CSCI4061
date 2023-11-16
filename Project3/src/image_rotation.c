@@ -257,7 +257,9 @@ void* worker(void *args){
         int width;
         int height;
         int bpp;
-        uint8_t* image_result = stbi_load(request.file_path, &width, &height, &bpp,  CHANNEL_NUM);
+
+        uint8_t* image_result = (uint8_t **)malloc(sizeof(uint8_t*));
+        stbi_load(request.file_path, &width, &height, &bpp,  CHANNEL_NUM);
         uint8_t** result_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
         uint8_t** img_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
         for(int i = 0; i < width; i++){
@@ -296,6 +298,15 @@ void* worker(void *args){
         // Call pretty print to add to the log file
         log_pretty_print(log_file, thread_id, requests_handled, file_name);
 
+        // Free everything that was malloc'd
+        free(img_array);
+        for(int i=0; i < width; i++){
+            free(result_matrix[i]);
+            free(img_matrix[i]);
+        }
+        free(result_matrix);
+        free(img_matrix);
+
         // Unlock the queue
         pthread_mutex_unlock(&queue_lock);
         printf("WORKER %d: unlocked queue_lock\n", thread_id);
@@ -330,13 +341,17 @@ int main(int argc, char* argv[]){
 
     // Open the log file
     log_file = fopen("request_log", "a");
-    if (log_file == NULL) {
+    if(log_file == NULL){
         printf("Error creating log file.\n");
         return 1;
     }
 
     // Initiate the queue
     queue_init(&request_queue);
+    if(request_queue == NULL){
+        perror("Failed to initialize queue\n");
+        exit(1);
+    }
 
     // Create processing thread
     processing_args_t processing_args = {image_dir, rotation_angle, &request_queue};
@@ -346,7 +361,7 @@ int main(int argc, char* argv[]){
     // Create worker threads
     pthread_t workers[num_workers];
     int thread_ids[num_workers];
-    for (int i = 0; i < num_workers; ++i) {
+    for(int i = 0; i < num_workers; ++i){
         thread_ids[i] = i;
         pthread_create(&workers[i], NULL, worker, &thread_ids[i]);
     }
@@ -355,9 +370,10 @@ int main(int argc, char* argv[]){
     pthread_join(processing_thread, NULL);
 
     // Join worker threads
-    for (int i = 0; i < num_workers; ++i) {
+    for(int i = 0; i < num_workers; ++i){
         pthread_join(workers[i], NULL);
     }
 
+    printf("PROGRAM EXITED SUCCESSFULLY\n");
     return 0;
 }
