@@ -11,19 +11,36 @@
 ## Changes to Makefile or Existing Files: 
 - None
 
-## Contribution Plan:
-- All: README, Bug Fix.
-- Jackson: Implement portions for pngs, implement logging help with the worker threads.
-- Tyler: Implement the worker threads.
-- Gianni: Fully implement the Mutex locks and conditions, help with logs.
+## Member Contributions:
+- Jackson: Completed logging function as well as the worker thread.
+- Tyler: Implemented locking for Processing as well as outlined all of the conditions needed.
+- Gianni: Implemented locking for Queue and main.
+-Group Work: Completed the processing thread, README and bug fixed.
 
-## Implementation plan for the worker threads:
-- Create all the worker thread using pthread_create with the main thread.
-- The worker thread will be given an ID and passed to the request queue
-- Worker thread will run until no longer needed.
+## Additional Assumptions:
+- None
 
-## Implementation plan for Mutex locks and Conditionals:
-- The mutex lock will be implemented around the queue functions to make sure only one thread can access the queue at a time.
-- All threads will lock the mutex lock before checking or modifying the queue, unlocks afterwards. 
-- Condition Variable: Empty, threads will wait on the queue if it is empty. When a item is added they will be signaled.
-- Condition Variable: Full, threads will wait on the queue if it is empty. When a item is removed they will be signaled.
+## Parallel Image Processing Design:
+Recieve number of workers from input.
+Creates a processing thread thread
+	traverse image directory
+		for img file in directory:
+			lock(queue_lock)
+			put request in the shared queue
+			unlock(queue_lock)
+	Signal(queue_filled_cond)
+Create number workers of threads.
+Each worker continues to dequeues request from queue until empty.
+lock(processing_wait_lock)
+Then applies the transformation
+saves it to the output directory
+unlock(processing_wait_lock)
+Join threads and exit.
+
+Difference from Intermediate:
+Additional Lock and Conditional
+Mutex Locks: queue_lock, processing_wait_lock
+Conditionals: queue_has_request_cond, queue_filled_cond, workers_done_cond
+
+## AI Help:
+- Used to help with certain debugging on test cases. Revealed incorrect calls in error checking. 
