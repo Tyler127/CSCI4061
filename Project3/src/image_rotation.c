@@ -25,6 +25,7 @@ request_t queue_dequeue(request_queue_t *q) {
     return request;
 }
 
+// View queue size and requests
 void queue_visualize(request_queue_t *q){
     printf("|-----VISUALIZING QUEUE-----|\n");
     printf(" queue size: %d\n", q->size);
@@ -56,22 +57,15 @@ char* output_directory; // set in main
 int all_requests_added_to_queue = 0;
 int all_requests_completed_by_workers = 0;
 
-//Might be helpful to track the ID's of your threads in a global array
 
-//What kind of locks will you need to make everything thread safe? [Hint you need multiple]
+// Initialize queue_lock and processing_waiting_lock
 pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t processing_waiting_lock = PTHREAD_MUTEX_INITIALIZER;
 
-//What kind of CVs will you need  (i.e. queue full, queue empty) [Hint you need multiple]
+// Initialize queue_has_request_cond, queue_filled_cond, workers_done_cond
 pthread_cond_t queue_has_request_cond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t queue_filled_cond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t workers_done_cond = PTHREAD_COND_INITIALIZER;
-
-//How will you track the requests globally between threads? How will you ensure this is thread safe?
-//How will you track which index in the request queue to remove next?
-//How will you update and utilize the current number of requests in the request queue?
-//How will you track the p_thread's that you create for workers?
-//How will you know where to insert the next request received into the request queue?
 
 
 /*
@@ -156,7 +150,7 @@ void* processing(void *args) {
     */
     pthread_mutex_lock(&processing_waiting_lock);
 
-    /* CODE TO EXIT WORKERS ATTEMPT 1: */
+    /* CODE TO EXIT WORKERS */
     while(all_requests_completed_by_workers != 1){
         printf("PROCESSING THREAD: waiting for a worker to finish\n");
 
@@ -170,17 +164,6 @@ void* processing(void *args) {
             printf("PROCESSING THREAD: sent final broadcast\n");
         }
     }
-
-    /* CODE TO EXIT WORKERS ATTEMPT 2: */
-    // while(1){
-    //     printf("PROCESSING THREAD: waiting for workers_done_cond\n");
-    //     pthread_cond_wait(&workers_done_cond, &processing_waiting_lock);
-    //     if(processing_args->request_queue->size <= 0){
-    //         pthread_cond_broadcast(&queue_has_request_cond);
-    //         printf("PROCESSING THREAD: sent final broadcast of queue_has_request_cond\n");
-    //         break;
-    //     }
-    // }
 
     pthread_mutex_unlock(&processing_waiting_lock);
 
@@ -204,9 +187,6 @@ void* processing(void *args) {
 
     6: The Worker thread will log the request from the queue while maintaining synchronization using lock and unlock.  
 
-    8: Hint the worker thread should be in a While(1) loop since a worker thread can process multiple requests and It will have two while loops in total
-        that is just a recommendation feel free to implement it your way :) 
-    9: You may need different lock depending on the job.  
 */
 void* worker(void *args){
     int thread_id = *(int*)args; // Casts to int pointer then dereferences
@@ -351,7 +331,7 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Initiate the queue
+    // Initialize the queue
     queue_init(&request_queue);
 
     // Create processing thread
