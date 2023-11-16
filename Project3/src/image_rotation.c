@@ -227,8 +227,8 @@ void* worker(void *args){
                 // Lock the processing waiting lock
                 pthread_mutex_lock(&processing_waiting_lock);
 
-                // Broadcast that the worker is exiting
-                pthread_cond_broadcast(&workers_done_cond);
+                // Signal that the worker is exiting
+                pthread_cond_signal(&workers_done_cond);
                 printf("WORKER %d: exiting\n", thread_id);
 
                 all_requests_completed_by_workers = 1;
@@ -246,10 +246,22 @@ void* worker(void *args){
         // Get a request off the queue 
         request_t request = queue_dequeue(&request_queue);
 
+        // Call pretty print to add to the log file
+        const char* file_name = get_filename_from_path(request.file_path);
+        log_pretty_print(log_file, thread_id, requests_handled, file_name);
+
+        // Unlock the queue
+        pthread_mutex_unlock(&queue_lock);
+
         // Increment the amount of requests handled by this worker
         requests_handled++;
 
         printf("----------------------------------------------> WORKER %d: got file: %s\n", thread_id, request.file_path);
+
+        // Create the output path
+        char* output_file_path = (char*)malloc(strlen(output_directory) + strlen(file_name) + 1);
+        sprintf(output_file_path, "%s/%s", output_directory, file_name);
+        printf("    output path: %s\n", output_file_path);
 
         /*
             Stbi_load takes: A file name, int pointer for width, height, and bpp
@@ -257,9 +269,7 @@ void* worker(void *args){
         int width;
         int height;
         int bpp;
-
-        uint8_t* image_result = (uint8_t **)malloc(sizeof(uint8_t*));
-        stbi_load(request.file_path, &width, &height, &bpp,  CHANNEL_NUM);
+        uint8_t* image_result = stbi_load(request.file_path, &width, &height, &bpp,  CHANNEL_NUM);
         uint8_t** result_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
         uint8_t** img_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
         for(int i = 0; i < width; i++){
@@ -274,14 +284,14 @@ void* worker(void *args){
             Width and height that were passed into stbi_load
         */
         linear_to_image(image_result, img_matrix, width, height);
-
+        
         // Call flip_left_to_right or flip_upside_down depends on the angle(Should just be 180 or 270)
         // Both take image matrix from linear_to_image, and result_matrix to store data, and width and height.
         if(request.rotation_angle == 180){
-            flip_upside_down(img_matrix, result_matrix, width, height);
+            flip_left_to_right(img_matrix, result_matrix, width, height); 
         } 
         else if(request.rotation_angle == 270){
-            flip_left_to_right(img_matrix, result_matrix, width, height); 
+            flip_upside_down(img_matrix, result_matrix, width, height);
         }
         
         /// Call flatten_mat function, using result_matrix, img_arry and width and height; 
@@ -289,14 +299,7 @@ void* worker(void *args){
         flatten_mat(result_matrix, img_array, width, height);
 
         // Call stbi_write_png using: New path to where you wanna save the file, Width, height, img_array, (width*CHANNEL_NUM)
-        const char* file_name = get_filename_from_path(request.file_path);
-        char* output_file_path = (char*)malloc(strlen(output_directory) + strlen(file_name) + 1);
-        sprintf(output_file_path, "%s/%s", output_directory, file_name);
-        printf("    output path: %s\n", output_file_path);
-        stbi_write_png(output_file_path, width, height, CHANNEL_NUM, &img_array, (width*CHANNEL_NUM));
-
-        // Call pretty print to add to the log file
-        log_pretty_print(log_file, thread_id, requests_handled, file_name);
+        stbi_write_png(output_file_path, width, height, CHANNEL_NUM, img_array, (width*CHANNEL_NUM));
 
         // Free everything that was malloc'd
         free(img_array);
@@ -307,8 +310,6 @@ void* worker(void *args){
         free(result_matrix);
         free(img_matrix);
 
-        // Unlock the queue
-        pthread_mutex_unlock(&queue_lock);
         printf("WORKER %d: unlocked queue_lock\n", thread_id);
     }      
 }
@@ -321,8 +322,8 @@ void* worker(void *args){
         Join on the created threads
         Clean any data if needed. 
 */
-int main(int argc, char* argv[]){
-    if(argc != 5){
+int main(int argc, char* argv[]) {
+    if(argc != 5) {
         fprintf(stderr, "Usage: %s <image directory> <output directory> <number of worker threads> <rotation angle>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -334,46 +335,64 @@ int main(int argc, char* argv[]){
     int rotation_angle = atoi(argv[4]);
 
     // Set global variables
-    num_worker_threads = num_workers; // set the global variable
+    num_worker_threads = num_workers; 
     output_directory = (char*)malloc(strlen(output_dir) + 1);
+    if (!output_directory) {
+        perror("Failed to allocate memory for output directory");
+        exit(EXIT_FAILURE);
+    }
     strcpy(output_directory, output_dir);
-    printf("output dir global: %s\n", output_directory);
 
     // Open the log file
     log_file = fopen("request_log", "a");
-    if(log_file == NULL){
-        printf("Error creating log file.\n");
-        return 1;
+    if (log_file == NULL) {
+        perror("Error opening log file");
+        free(output_directory);
+        exit(EXIT_FAILURE);
     }
 
     // Initiate the queue
     queue_init(&request_queue);
-    if(request_queue == NULL){
-        perror("Failed to initialize queue\n");
-        exit(1);
-    }
 
     // Create processing thread
     processing_args_t processing_args = {image_dir, rotation_angle, &request_queue};
     pthread_t processing_thread;
-    pthread_create(&processing_thread, NULL, processing, &processing_args);
+    if (pthread_create(&processing_thread, NULL, processing, &processing_args) != 0) {
+        perror("Failed to create processing thread");
+        fclose(log_file);
+        free(output_directory);
+        exit(EXIT_FAILURE);
+    }
 
     // Create worker threads
     pthread_t workers[num_workers];
     int thread_ids[num_workers];
-    for(int i = 0; i < num_workers; ++i){
+    for (int i = 0; i < num_workers; ++i) {
         thread_ids[i] = i;
-        pthread_create(&workers[i], NULL, worker, &thread_ids[i]);
+        if (pthread_create(&workers[i], NULL, worker, &thread_ids[i]) != 0) {
+            perror("Failed to create worker thread");
+            // Cleanup already created threads
+            for (int j = 0; j < i; j++) {
+                pthread_cancel(workers[j]); //found on https://www.geeksforgeeks.org/pthread_cancel-c-example/, cancels thread using thread ID
+            }
+            pthread_cancel(processing_thread);
+            fclose(log_file);
+            free(output_directory);
+            exit(EXIT_FAILURE);
+        }
     }
 
     // Wait for processing thread to finish
     pthread_join(processing_thread, NULL);
 
     // Join worker threads
-    for(int i = 0; i < num_workers; ++i){
+    for (int i = 0; i < num_workers; ++i) {
         pthread_join(workers[i], NULL);
     }
 
+    // Cleanup
+    fclose(log_file);
+    free(output_directory);
     printf("PROGRAM EXITED SUCCESSFULLY\n");
     return 0;
 }
