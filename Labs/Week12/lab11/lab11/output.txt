@@ -1,0 +1,15 @@
+./server
+Client: Hi server
+Server: Hi client
+Client: Sending msg
+Server: Recieved msg
+Client: END
+Server exiting...
+
+./client
+Client: Hi server
+Server: Hi client
+Client: Sending msg
+Server: Recieved msg
+Client: END
+Client exiting...
