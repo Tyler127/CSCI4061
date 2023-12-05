@@ -30,6 +30,9 @@ int main(int argc, char* argv[]) {
     }
     
     // Set up socket
+    int sockfd, portno, n;
+    struct sockaddr_in serv_addr;
+    struct hostent *server;
 
     // Connect the socket
 
