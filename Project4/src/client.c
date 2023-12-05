@@ -1,4 +1,5 @@
 #include "client.h"
+#include "common.h"
 #include <netdb.h>  // Include this for struct hostent and related network functions
 #include <string.h> // Include this for memcpy'
 #include <sys/stat.h>  // For stat
@@ -43,10 +44,13 @@ int send_file(int socket, const char *filename, int rotation_angle) {
         Packet.flags == IMG_FLAG_ROTATE_270;
     }
 
+    // Serialize the packet
+    char *serializedPacket = serializePacket(&Packet);
+
+    // Send the serialized packet to the server
+    write(socket, serializedPacket, PACKETSZ);
 
 
-    // Send packet to the server
-    // ...
 
     fclose(file);
     return 0;
@@ -125,6 +129,14 @@ int main(int argc, char* argv[]) {
 
 
     // Send the image data to the server
+    packet_t packet_bad;
+    packet_bad.operation = IMG_OP_ROTATE;
+
+    char* data = serializePacket(&packet_bad);
+
+    // Send the serialized packet to the server
+    write(socket, data, PACKETSZ);
+
 
     // Check that the request was acknowledged
 

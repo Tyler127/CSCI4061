@@ -1,24 +1,48 @@
 #include "server.h"
-
+#include "common.h"
 #define PORT 8080
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024 
 
 
-void *clientHandler(void *socket) {
-    int newsockfd = *(int*)socket;
-    // Receive packets from the client
+void *clientHandler(void *socket_desc) {
+    int sock = *(int*)socket_desc;
+    char buffer[PACKETSZ];
 
-    // Determine the packet operatation and flags
+    // Receive the serialized packet from the client
+    read(sock, buffer, PACKETSZ);
 
-    // Receive the image data using the size
+    // Deserialize the packet
+    packet_t *receivedPacket = deserializeData(buffer);
 
-    // Process the image data based on the set of flags
+    // Allocate memory for the image data
+    unsigned char *img_data = malloc(receivedPacket->size);
+    if (!img_data) {
+        perror("ERROR allocating memory for image data");
+        free(receivedPacket);
+        close(sock);
+        return NULL;
+    }
 
-    // Acknowledge the request and return the processed image data
-    close(newsockfd);
+    // Receive the image data
+    read(sock, img_data, receivedPacket->size);
+
+    // Process the image based on the operation and flags
+    if (receivedPacket->operation == IMG_OP_ROTATE) {
+        // Rotate the image as per the flags
+        // ...
+
+        // Optionally, send a response back to the client
+        // ...
+    }
+
+    // Clean up
+    free(img_data);
+    free(receivedPacket);
+    close(sock);
     return NULL;
 }
+
 
 
 int main(int argc, char* argv[]) {
