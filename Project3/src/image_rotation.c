@@ -10,33 +10,59 @@ void queue_init(request_queue_t *q) {
     q->rear = -1;
 }
 
-
-// Add an item to the queue
-void queue_enqueue(request_queue_t *q, node_t item) { 
-    // Enqueue the item
+// Add a request to the queue
+void queue_enqueue(request_queue_t *q, request_t request) { 
     q->rear = (q->rear + 1) % MAX_QUEUE_LEN;
-    q->items[q->rear] = item;
+    q->requests[q->rear] = request;
     q->size++;
-
 }
 
-// Remove an item from the queue
-node_t queue_dequeue(request_queue_t *q) {
-    // Dequeue the item
-    node_t item = q->items[q->front];
+// Remove a request from the queue
+request_t queue_dequeue(request_queue_t *q) {
+    request_t request = q->requests[q->front];
     q->front = (q->front + 1) % MAX_QUEUE_LEN;
     q->size--;
-    return item;
+    return request;
 }
 
- 
- 
-//Global integer to indicate the length of the queue??
+void queue_visualize(request_queue_t *q){
+    printf("|-----VISUALIZING QUEUE-----|\n");
+    printf(" queue size: %d\n", q->size);
+    printf(" queue front request file: %s\n\n", q->requests[q->front].file_path);
+
+    for(int i=0; i < q->size; i++){
+        request_t current_request = q->requests[i];
+        printf("i: %d\n", i);
+        printf("    request file: %s\n", current_request.file_path);
+        printf("    rotation angle: %d\n", current_request.rotation_angle);
+    }
+
+    printf("|-----VISUALIZING QUEUE DONE-----|\n");
+}
+
+// Global queue
+request_queue_t request_queue;
+
 //Global integer to indicate the number of worker threads
+int num_worker_threads = 0; // set in main()
+
 //Global file pointer for writing to log file in worker??
+
 //Might be helpful to track the ID's of your threads in a global array
+
 //What kind of locks will you need to make everything thread safe? [Hint you need multiple]
+pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t processing_waiting_lock = PTHREAD_MUTEX_INITIALIZER;
+
 //What kind of CVs will you need  (i.e. queue full, queue empty) [Hint you need multiple]
+pthread_cond_t queue_has_request_cond = PTHREAD_COND_INITIALIZER;
+pthread_cond_t queue_filled_cond = PTHREAD_COND_INITIALIZER;
+pthread_cond_t workers_done_cond = PTHREAD_COND_INITIALIZER;
+
+// Global condition trackers
+int all_requests_added_to_queue = 0;
+int all_requests_completed_by_workers = 0;
+
 //How will you track the requests globally between threads? How will you ensure this is thread safe?
 //How will you track which index in the request queue to remove next?
 //How will you update and utilize the current number of requests in the request queue?
@@ -77,6 +103,8 @@ void* processing(void *args) {
     DIR *dir;
     struct dirent *entry;
 
+    printf("-----> ENTERING PROCESSING THREAD\n");
+
     if ((dir = opendir(processing_args->directory_path)) == NULL) {
         perror("opendir() error");
         exit(EXIT_FAILURE);
@@ -84,18 +112,75 @@ void* processing(void *args) {
 
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_REG) {  // Check for regular file
+            // Lock the queue 
+            pthread_mutex_lock(&queue_lock);
+            printf("PROCESSING THREAD: locked queue_lock\n");
+
+            // Assemble the file path string 
             char* file_path = malloc(PATH_MAX);
             sprintf(file_path, "%s/%s", processing_args->directory_path, entry->d_name);
             
-            node_t item;
-            item.file_path = file_path;
-            item.rotation_angle = processing_args->rotation_angle;
+            // Create a new node struct
+            request_t request;
+            request.file_path = file_path;
+            request.rotation_angle = processing_args->rotation_angle;
             
-            // Enqueue the item
-            queue_enqueue(processing_args->request_queue, item);
+            // Enqueue the request
+            queue_enqueue(processing_args->request_queue, request);
+
+            printf("    file %s added to queue\n", file_path);
+
+            // Unlock the queue
+            pthread_mutex_unlock(&queue_lock);
+            printf("PROCESSING THREAD: unlocked queue_lock\n");
+
+            // Broadcast that the queue has had a request added
+            pthread_cond_broadcast(&queue_has_request_cond);
+            printf("PROCESSNG THREAD: broadcasted queue_has_request_cond\n");
         }
     }
-    
+
+    // Update that all files have been added to the request queue
+    all_requests_added_to_queue = 1;
+    printf("PROCESSING THREAD: all files have been added to the queue\n");
+
+    /* Wait for a worker thread to finish.
+    Once one worker signals done that means the queue is empty and all work is done.
+    So then broadcast the condition the workers are waiting on so they can reloop 
+    and then exit.
+    */
+    pthread_mutex_lock(&processing_waiting_lock);
+
+    /* CODE TO EXIT WORKERS ATTEMPT 1: */
+    while(all_requests_completed_by_workers != 1){
+        printf("PROCESSING THREAD: waiting for a worker to finish\n");
+
+        // Wait for a worker thread to signal all work is done
+        pthread_cond_wait(&workers_done_cond, &processing_waiting_lock);
+        printf("PROCESSING THREAD: saw a worker finish\n");
+
+        if(processing_args->request_queue->size <= 0){
+            // Broadcast the condition the other workers are waiting on
+            pthread_cond_broadcast(&queue_has_request_cond);
+            printf("PROCESSING THREAD: sent final broadcast\n");
+        }
+    }
+
+    /* CODE TO EXIT WORKERS ATTEMPT 2: */
+    // while(1){
+    //     printf("PROCESSING THREAD: waiting for workers_done_cond\n");
+    //     pthread_cond_wait(&workers_done_cond, &processing_waiting_lock);
+    //     if(processing_args->request_queue->size <= 0){
+    //         pthread_cond_broadcast(&queue_has_request_cond);
+    //         printf("PROCESSING THREAD: sent final broadcast of queue_has_request_cond\n");
+    //         break;
+    //     }
+    // }
+
+    pthread_mutex_unlock(&processing_waiting_lock);
+
+    printf("-----> EXITING PROCESSING THREAD\n");
+
     closedir(dir);
     return NULL;
 }
@@ -112,38 +197,78 @@ void* processing(void *args) {
 
     5: The worker thread will write the data back to the given output dir as passed in main. 
 
-    6:  The Worker thread will log the request from the queue while maintaining synchronization using lock and unlock.  
+    6: The Worker thread will log the request from the queue while maintaining synchronization using lock and unlock.  
 
     8: Hint the worker thread should be in a While(1) loop since a worker thread can process multiple requests and It will have two while loops in total
         that is just a recommendation feel free to implement it your way :) 
     9: You may need different lock depending on the job.  
-
 */
-void* worker(void *args)
-void* worker(void *args)
-{
-    int thread_id = *(int*)args;
-    printf("Worker thread %d \n", thread_id);
-    return NULL;
-        /*
-            Stbi_load takes:
-                A file name, int pointer for width, height, and bpp
+void* worker(void *args){
+    int thread_id = *(int*)args; // Casts to int pointer then dereferences
 
-        */
-       // uint8_t* image_result = stbi_load("??????","?????", "?????", "???????",  CHANNEL_NUM);
-       // uint8_t** result_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
-        //uint8_t** img_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
-       // for(int i = 0; i < width; i++){
-         //   result_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
-         //   img_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
-       // }
-        /*
-        linear_to_image takes: 
-            The image_result matrix from stbi_load
-            An image matrix
-            Width and height that were passed into stbi_load
-        
-        */
+    while(1){
+        // Lock the queue
+        pthread_mutex_lock(&queue_lock);
+        printf("WORKER %d: locked queue_lock\n", thread_id);
+
+        // Wait for the queue to have at least one request
+        while(request_queue.size <= 0){
+            // Check if all work has been completed
+            if(request_queue.size <= 0 && all_requests_added_to_queue == 1){
+                // Unlock the queue
+                pthread_mutex_unlock(&queue_lock);
+                
+                // Lock the processing waiting lock
+                pthread_mutex_lock(&processing_waiting_lock);
+                printf("WORKER %d: locked processing_waiting_lock\n", thread_id);
+
+                // Broadcast that the worker is exiting
+                pthread_cond_broadcast(&workers_done_cond);
+                printf("WORKER %d: exiting\n", thread_id);
+
+                all_requests_completed_by_workers = 1;
+
+                // Unlock the waiting lock
+                pthread_mutex_unlock(&processing_waiting_lock);
+
+                pthread_exit(NULL);
+            }
+
+            printf("    WORKER %d: waiting for queue_has_request_cond\n", thread_id);
+            pthread_cond_wait(&queue_has_request_cond, &queue_lock);
+        }
+
+        // Get a request off the queue
+        request_t request = queue_dequeue(&request_queue);
+        printf("    -----------------------------------------> WORKER %d: got file: %s\n", thread_id, request.file_path);
+
+        // Unlock the queue
+        pthread_mutex_unlock(&queue_lock);
+        printf("WORKER %d: unlocked queue_lock\n", thread_id);
+    }
+
+    
+
+
+    // /*
+    //     Stbi_load takes:
+    //         A file name, int pointer for width, height, and bpp
+    // */
+    // uint8_t* image_result = stbi_load("??????","?????", "?????", "???????",  CHANNEL_NUM);
+    // uint8_t** result_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
+    // uint8_t** img_matrix = (uint8_t **)malloc(sizeof(uint8_t*) * width);
+    // for(int i = 0; i < width; i++){
+    //     result_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
+    //     img_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
+    // }
+
+    /*
+    linear_to_image takes: 
+        The image_result matrix from stbi_load
+        An image matrix
+        Width and height that were passed into stbi_load
+    
+    */
         //linear_to_image("??????", "????", "????", "????");
         ////TODO: you should be ready to call flip_left_to_right or flip_upside_down depends on the angle(Should just be 180 or 270)
         //both take image matrix from linear_to_image, and result_matrix to store data, and width and height.
@@ -172,20 +297,20 @@ void* worker(void *args)
         Join on the created threads
         Clean any data if needed. 
 */
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) 
+{
     if (argc != 5) {
         fprintf(stderr, "Usage: %s <image directory> <output directory> <number of worker threads> <rotation angle>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
-    // Parse arguments
+    // Read arguments
     char *image_dir = argv[1];
     char *output_dir = argv[2];
     int num_workers = atoi(argv[3]);
+    num_worker_threads = num_workers; // set the global variable
     int rotation_angle = atoi(argv[4]);
 
-    // Initialize queue
-    request_queue_t request_queue;
     queue_init(&request_queue);
 
     // Create processing thread
@@ -210,16 +335,4 @@ int main(int argc, char* argv[]) {
     }
 
     return 0;
-*/
-int main(int argc, char* argv[])
-{
-    if(argc != 5)
-    {
-        fprintf(stderr, "Usage: File Path to image dirctory, File path to output dirctory, number of worker thread, and Rotation angle\n");
-    }
-
-    
-    
-    ///TODO: 
-
 }
