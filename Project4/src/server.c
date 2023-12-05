@@ -6,7 +6,7 @@
 
 
 void *clientHandler(void *socket) {
-
+    int newsockfd = *(int*)socket;
     // Receive packets from the client
 
     // Determine the packet operatation and flags
@@ -16,7 +16,10 @@ void *clientHandler(void *socket) {
     // Process the image data based on the set of flags
 
     // Acknowledge the request and return the processed image data
+    close(newsockfd);
+    return NULL;
 }
+
 
 int main(int argc, char* argv[]) {
 
@@ -42,7 +45,7 @@ int main(int argc, char* argv[]) {
     server_addr.sin_port = htons(port_number); // Port number
 
     // Bind the socket to the port
-    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0){
+    if (bind(socket_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0){
         perror("ERROR on binding");
         exit(0);
     }   
@@ -52,9 +55,19 @@ int main(int argc, char* argv[]) {
     client_length = sizeof(client_addr);
 
     // Accept connections and create the client handling threads
-    new_socket_fd = accept(socket_fd, (struct socket_addr*) &client_addr, &client_length);
-    if (new_socket_fd < 0){
-        perror("ERROR on accept");
+    while (1) {
+        new_socket_fd = accept(socket_fd, (struct sockaddr *) &client_addr, &client_length);
+        if (new_socket_fd < 0) {
+            perror("ERROR on accept");
+            continue;
+        }
+
+        pthread_t thread_id;
+        if (pthread_create(&thread_id, NULL, clientHandler, (void*)&new_socket_fd) < 0) {
+            perror("ERROR creating thread");
+            return 1;
+        }
+        pthread_detach(thread_id); // Optionally detach the thread
     }
 
     // Release any resources
