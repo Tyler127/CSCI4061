@@ -29,3 +29,7 @@
 - We establish a connection per client request and set up a client.  
 - If the packet contents is not sent properly (data lost from connection), or a corrupt packet is sent, IMG_OP_NAK is run, and the connection is closed. 
 - After image rotation is applied, The server sends the rotated image back in its packet and waits for a IMG_OP_EXIT and safetly closes the connection.
+
+## References
+
+Lines checks to see if the file is regular, taken from Stack Overflow: https://stackoverflow.com/questions/40163270/what-is-s-isreg-and-what-does-it-do#:~:text=S_ISREG()%20is%20a%20macro,stat)%20is%20a%20regular%20file.
