@@ -28,8 +28,6 @@
 #include "hash.h"
 
 
-
-
 /********************* [ Helpful Macro Definitions ] **********************/
 #define BUFF_SIZE 1024 
 #define LOG_FILE_NAME "request_log"               //Standardized log file name
@@ -58,14 +56,30 @@ typedef struct packet {
     unsigned char checksum[SHA256_BLOCK_SIZE];
 } packet_t; 
 
-typedef struct request_queue {
-    int rotation_angle;
-    char *file_name;
-} request_t; 
-
 typedef struct processing_args {
     int number_worker;
     char *file_name;
 } processing_args_t;
+
+/********************* [ Request Queue        ] ************************/
+
+// Structure for queue elements
+typedef struct request {
+    char* file_path;  // File path for the image to process
+    int rotation_angle;  // The angle to rotate the image
+} request_t; 
+
+// Structure for the queue
+typedef struct request_queue {
+    request_t requests[MAX_QUEUE_LEN];  // Array of queue items
+    int size;                           // Current size of the queue
+    int front;                          // Index of the front item
+    int rear;                           // Index of the rear item
+} request_queue_t; 
+
+/********************* [ Function Prototypes ] **********************/
+void queue_init(request_queue_t *q);
+void queue_enqueue(request_queue_t *q, request_t request);
+request_t queue_dequeue(request_queue_t *q);
 
 #endif

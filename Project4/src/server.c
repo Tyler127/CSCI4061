@@ -79,19 +79,23 @@ int main(int argc, char* argv[]) {
     client_length = sizeof(client_addr);
 
     // Accept connections and create the client handling threads
+    printf("SERVER: accepting connections\n");
     while (1) {
         new_socket_fd = accept(socket_fd, (struct sockaddr *) &client_addr, &client_length);
         if (new_socket_fd < 0) {
             perror("ERROR on accept");
             continue;
         }
+        printf("SERVER: client accepted. addr: d\n");
 
         pthread_t thread_id;
         if (pthread_create(&thread_id, NULL, clientHandler, (void*)&new_socket_fd) < 0) {
             perror("ERROR creating thread");
             return 1;
         }
-        pthread_detach(thread_id); // Optionally detach the thread
+        printf("SERVER: new thread made for client. addr: \n");
+
+        pthread_detach(thread_id); // Detach the thread
     }
 
     // Release any resources
