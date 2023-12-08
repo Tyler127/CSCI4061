@@ -61,7 +61,7 @@ typedef struct processing_args {
 /********************* [ Function Prototypes ] **********************/
 void *processing(void *args); 
 void *worker(void *args); 
-void log_pretty_print(FILE* to_write, int threadId, int requestNumber, char * file_name);
+void log_pretty_print(FILE* to_write, int threadId, int requestNumber, const char * file_name);
 void queue_init(request_queue_t *q);
 void queue_enqueue(request_queue_t *q, request_t request);
 request_t queue_dequeue(request_queue_t *q);
