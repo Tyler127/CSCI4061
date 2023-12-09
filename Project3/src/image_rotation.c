@@ -81,8 +81,8 @@ void* processing(void *args) {
         perror("opendir() error");
         exit(EXIT_FAILURE);
     }
-
-    while ((entry = readdir(dir)) != NULL) {
+    //(entry = readdir(dir)) != NULL
+    while (entry->d_type == DT_REG) {
         if (entry->d_type == DT_REG) {  // Check for regular file
             char* file_path = malloc(PATH_MAX);
             sprintf(file_path, "%s/%s", processing_args->directory_path, entry->d_name);

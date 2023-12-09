@@ -2,6 +2,7 @@
 #define IMAGE_CLIENT_ROTATION_H_
 
 #define _XOPEN_SOURCE
+#define _DEFAULT_SOURCE // https://stackoverflow.com/questions/69689586/dt-reg-undeclared-even-when-using-dirent-h-header-file-in-function
 
 #include <string.h>
 #include <stdlib.h>
