@@ -4,7 +4,7 @@
 #include <string.h> // Include this for memcpy'
 #include <sys/stat.h>  // For stat
 
-#define PORT 8081
+#define PORT 8082
 #define BUFFER_SIZE 1024 
 
 /* START QUEUE IMPLEMENTATION */
@@ -55,7 +55,7 @@ request_queue_t request_queue;
 
 
 int send_file(int socket, const char *filename, int rotation_angle) {
-    printf("send_file: sending file: %s - rot angle: %d - socket: %d\n", filename, rotation_angle, socket);
+    printf("    [send_file]: filename: %s - rot angle: %d - socket: %d\n", filename, rotation_angle, socket);
 
     // Open the file
     FILE *file = fopen(filename, "r");
@@ -68,10 +68,11 @@ int send_file(int socket, const char *filename, int rotation_angle) {
     fseek(file, 0, SEEK_END);
     long img_size = ftell(file);
     rewind(file);
-    printf("    send_file: file size: %ld\n", img_size);
+    printf("    [send_file]: file size: %ld\n", img_size);
 
     // Allocate memory for the image data
     char* img_data = (char*)malloc(img_size);
+    memset(img_data, 0, img_size);
     if (img_data == NULL) {
         perror("ERROR allocating memory for image");
         fclose(file);
@@ -87,7 +88,7 @@ int send_file(int socket, const char *filename, int rotation_angle) {
     }
     printf("send_file: img_data: ");
     for (int i = 0; i < 300 && i < img_size; ++i) {
-        printf("%02X ", (unsigned char)img_data[i]);
+        printf("%02X ", (char)img_data[i]);
     }
     printf("\n");
 
@@ -104,13 +105,14 @@ int send_file(int socket, const char *filename, int rotation_angle) {
 
     // Serialize the packet
     char *serializedPacket = serializePacket(&Packet);
-    printf("send_file: packet serialized\n");
+    printf("    [send_file]: packet serialized\n");
 
     // Send the serialized packet to the server
-    write(socket, serializedPacket, PACKETSZ);
+    send(socket, serializedPacket, PACKETSZ, 0);
 
     // Send the image data to the server
-    write(socket, img_data, img_size);
+    size_t sent_data_size = send(socket, img_data, img_size, 0);
+    printf("    [send_file]: img sent to server. size: %ld\n", sent_data_size);
 
     fclose(file);
     return 0;
@@ -119,19 +121,22 @@ int send_file(int socket, const char *filename, int rotation_angle) {
 
 int receive_file(int socket, const char* output_filename) {
     // Open the file for writing
-    printf("receive_file: output_filename: %s\n", output_filename);
+    printf("    [receive_file]: output_filename: %s\n", output_filename);
     FILE *file = fopen(output_filename, "wb");
-    if (file == NULL) { //error check
+    if(file == NULL){ 
         perror("ERROR opening file");
         return -1;
     }
+    printf("    [receive_file]: file created\n");
 
     // Receive the processed image data from the server
-    unsigned char* data_buffer = malloc(10000);
-    recv(socket, data_buffer, 10000, MSG_WAITALL);
+    char* data_buffer = malloc(1000);
+    recv(socket, data_buffer, 1000, 0);
+    printf("    [receive_file]: img data received from server\n");
 
     // Write buffer to the created file
-    fwrite(file, 1, data_buffer, 10000);
+    fwrite(file, 1, data_buffer, 1000);
+    printf("    [receive_file]: img data successfully written to file\n");
 
     fclose(file);
     return 0;
@@ -194,9 +199,8 @@ int main(int argc, char* argv[]) {
     queue_visualize(&request_queue);
 
     // Set up socket
-    int sockfd, portno, n;
+    int sockfd;
     struct sockaddr_in serv_addr;
-    struct hostent *server;
 
     // Connect the socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -216,11 +220,11 @@ int main(int argc, char* argv[]) {
     printf("Client connected. \n");
 
     while(request_queue.size != 0){
-        printf("    making a request:\n");
+        printf("|----- Making a request -----|\n");
 
         // Take a request off of the queue
         request_t request = queue_dequeue(&request_queue);
-        printf("        request file_path: %s\n", request.file_path);
+        printf("    [main]: request file_path: %s\n", request.file_path);
         
         // TODO: move packet sending code here out of send_file function
 
@@ -235,15 +239,17 @@ int main(int argc, char* argv[]) {
         packet_t *received_packet = deserializeData(ack_packet_buffer);
         unsigned char received_operation = received_packet->operation;
         if(received_operation == IMG_OP_ACK){
-            printf("    Acknowledgement from server received!\n");
+            printf("    [main]: acknowledgement packet from server received!\n");
         }
 
         // Receive the processed image and save it in the output dir
         const char* file_name = get_filename_from_path(request.file_path);
         char* output_file_path = (char*)malloc(strlen(output_path) + strlen(file_name) + 1);
         sprintf(output_file_path, "%s/%s", output_path, file_name);
-        printf("output file path: %s\n", output_file_path);
+        printf("    [main]: output file path: %s\n", output_file_path);
         receive_file(sockfd, output_file_path);
+
+        printf("|----- End of Request -----|\n");
     }
 
     // TODO: send a good exit packet

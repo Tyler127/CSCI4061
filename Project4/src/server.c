@@ -1,6 +1,6 @@
 #include "server.h"
 #include "common.h"
-#define PORT 8081
+#define PORT 8082
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024 
 
@@ -8,29 +8,38 @@
 void *clientHandler(void *socket_desc) {
     // Setup the socket
     int sock = *(int*)socket_desc;
+    pid_t pid = getpid();
+    printf("[clientHandler][%d]: Thread Starting\n", pid);
 
     while(1){
         // Receive the serialized packet from the client
         char buffer[PACKETSZ];
-        recv(sock, buffer, PACKETSZ, MSG_WAITALL);
+        memset(buffer, 0, PACKETSZ);
+        size_t read_size = recv(sock, buffer, PACKETSZ, MSG_WAITALL);
+        if(read_size == 0){
+            continue;
+        }
+        printf("    [%d]: Received New Request.\n", pid);
 
         // Deserialize the packet
         packet_t *received_packet = deserializeData(buffer);
         unsigned char received_operation = received_packet->operation;
         unsigned int received_size = received_packet->size;
-        printf("    Received Packet:\n");
+
+        // Exit if received the IMG_OP_EXIT flag
         if(received_operation == IMG_OP_ROTATE){
-            printf("        operation: IMG_OP_ROTATE\n");
+            printf("    [%d]: operation: IMG_OP_ROTATE\n", pid);
         } 
         else if(received_operation == IMG_OP_EXIT){
-            printf("        operation: IMG_OP_EXIT\n");
+            printf("    [%d]: operation: IMG_OP_EXIT\n", pid);
             // TODO: Close the socket here?
             pthread_exit(NULL);
         }
-        printf("        size: %d\n", received_size);
+        printf("    [%d]: received_size: %d\n", pid, received_size);
 
-        // Allocate memory for the image data
-        unsigned char* img_data = malloc(received_size);
+        // Allocate memory for the image data 
+        char* img_data = (char*)malloc(received_size);
+        memset(img_data, 0, received_size);
         if(!img_data){
             perror("ERROR allocating memory for image data");
             free(received_packet);
@@ -39,21 +48,38 @@ void *clientHandler(void *socket_desc) {
         }
 
         // Receive the image data
-        recv(sock, img_data, received_size, MSG_WAITALL);
+        size_t read_data_size = recv(sock, img_data, received_size, 0);
+        if(read_data_size != received_size){
+            perror("ERROR incorrect amount of data read");
+            return NULL;
+        }
+        printf("    [%d]: read_size/received_size: %ld/%d\n", pid, read_data_size, received_size);
         printf("img_data: ");
         for (int i = 0; i < 300 && i < received_size; ++i) {
-            printf("%02X ", (unsigned char)img_data[i]);
+            printf("%02X ", (char)img_data[i]);
         }
         printf("\n");
 
         // Process the image based on the operation and flags
         if(received_operation == IMG_OP_ROTATE){
-            printf("    Processing image\n");
+            printf("    [%d]: processing image\n", pid);
 
             // Create a temp file for the input image data
-            const char* input_filename = "input.txt";
-            FILE* input_file = fopen(input_filename, "w");
-            write(input_file, img_data, received_size);
+            const char* input_filename = "input.png";
+            FILE* input_file = fopen(input_filename, "wb");
+            if(input_file == NULL){
+                perror("ERROR opening file");
+                return NULL;
+            }
+
+            // Write the received image data to the new file
+            size_t written_data_size = fwrite(img_data, 1, read_data_size, input_file);
+            printf("    [%d]: written_data_size/read_data_size: %ld/%ld\n", pid, written_data_size, read_data_size);
+            if(written_data_size != read_data_size){
+                perror("ERROR incorrect amount of data written to file");
+                return NULL;
+            }
+            printf("    [%d]: input.png created\n", pid);
 
             // Rotate the image as per the flags (copied code from P3)
             int width;
@@ -77,7 +103,7 @@ void *clientHandler(void *socket_desc) {
             flatten_mat(result_matrix, img_array, width, height);
 
             // Create temp file for output image data
-            const char* output_filename = "output.txt";
+            const char* output_filename = "output.png";
             FILE* output_file = fopen(output_filename, "w");
             stbi_write_png(output_filename, width, height, CHANNEL_NUM, img_array, (width*CHANNEL_NUM));
 
@@ -96,8 +122,6 @@ void *clientHandler(void *socket_desc) {
             read(output_filename, rotated_image_buffer, received_size);
             send(sock, rotated_image_buffer, received_size, 0);
 
-            // TODO: send packet then data before cleanup
-
             // Clean up
             free(img_array);
             for(int i=0; i < width; i++){
@@ -108,8 +132,9 @@ void *clientHandler(void *socket_desc) {
             free(img_matrix);
             fclose(input_file);
             fclose(output_file);
-            remove(input_filename);
-            remove(output_filename);
+            // remove(input_filename);
+            // remove(output_filename);
+            printf(" done\n");
         }
 
         // Clean up
@@ -120,6 +145,7 @@ void *clientHandler(void *socket_desc) {
 
     // Clean up
     close(sock);
+    printf("[clientHandler]: Thread Exiting\n");
     return NULL;
 }
 
@@ -133,7 +159,6 @@ int main(int argc, char* argv[]){
     socklen_t client_length;
     struct sockaddr_in server_addr;
     struct sockaddr_in client_addr;
-    int n;
 
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd < 0) 
@@ -158,26 +183,27 @@ int main(int argc, char* argv[]){
     client_length = sizeof(client_addr);
 
     // Accept connections and create the client handling threads
-    printf("SERVER: accepting connections.\n");
+    printf("[SERVER]: accepting connections.\n");
     while (1) {
         new_socket_fd = accept(socket_fd, (struct sockaddr *) &client_addr, &client_length);
         if (new_socket_fd < 0) {
             perror("ERROR on accept");
             continue;
         }
-        printf("SERVER: client accepted.\n");
+        printf("[SERVER]: client accepted.\n");
 
         pthread_t thread_id;
         if (pthread_create(&thread_id, NULL, clientHandler, (void*)&new_socket_fd) < 0) {
             perror("ERROR creating thread");
             return 1;
         }
-        printf("SERVER: new thread made for client.\n");
+        printf("[SERVER]: new thread made for client.\n");
 
         pthread_detach(thread_id); // Detach the thread
     }
 
     // Release any resources
     close(socket_fd);
+    printf("[SERVER]: server ending");
     return 0;
 }
