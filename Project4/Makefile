@@ -17,7 +17,7 @@ client: $(LIBDIR)/utils.o $(INCDIR)/utils.h $(SRCDIR)/client.c
 
 clean:
 	rm -f server client
-	rm -rf output
+	rm -rf output temp/*
 
 test: clean all
 	./server & 

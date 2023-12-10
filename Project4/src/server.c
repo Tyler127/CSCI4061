@@ -148,19 +148,27 @@ void *clientHandler(void *socket_desc) {
             char* serialized_packet = serializePacket(&ack_packet);
             size_t sent_data_size = send(sock, serialized_packet, PACKETSZ, 0);
             if(sent_data_size != PACKETSZ){
-                perror("ERROR incorrect size packet sent");
+                perror("ERROR incorrect size ack packet sent");
                 return NULL;
             }
             printf("    [%d]: acknowledgement packet sent to client\n", pid);
 
-            // Send rotated image data to client
+            // Read the rotated image data into a buffer
+            FILE* output_file = fopen(output_filename, "rb");
             char* rotated_image_data = (char*)malloc(received_size);
-            read(output_filename, rotated_image_data, received_size);
+            read_data_size = fread(rotated_image_data, 1, received_size, output_file);
+            printf("    [%d]: output.png -> read_data_size/received_size: %ld/%d\n", pid, read_data_size, received_size);
+            // if(read_data_size != received_size){
+            //     perror("ERROR incorrect amount of data read from output.png file");
+            //     return NULL;
+            // }
+            
+            // Send the rotated image data to the clientt
             sent_data_size = send(sock, rotated_image_data, received_size, 0);
-            if(sent_data_size != received_size){
-                perror("ERROR incorrect size of image data sent");
-                return NULL;
-            }
+            // if(sent_data_size != received_size){
+            //     perror("ERROR incorrect amount of image data from output.png sent");
+            //     return NULL;
+            // }
 
             // Clean up
             free(img_array);
@@ -170,9 +178,9 @@ void *clientHandler(void *socket_desc) {
             }
             free(result_matrix);
             free(img_matrix);
-            // fclose(input_file);
-            // remove(input_filename);
-            // remove(output_filename);
+            fclose(output_file);
+            remove(input_filename);
+            remove(output_filename);
         }
 
         // Clean up
@@ -203,7 +211,7 @@ int main(int argc, char* argv[]){
        perror("ERROR opening socket");
 
     // Initialize the server adddress
-    bzero((char*) &server_addr, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
     port_number = PORT;
 
     server_addr.sin_family = AF_INET; // IPv4

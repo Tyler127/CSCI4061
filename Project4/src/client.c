@@ -125,17 +125,22 @@ int receive_file(int socket, const char* output_filename) {
     FILE *file = fopen(output_filename, "wb");
     if(file == NULL){ 
         perror("ERROR opening file");
-        return -1;
+        return 1;
     }
     printf("    [receive_file]: file created\n");
 
-    // Receive the processed image data from the server
-    char* data_buffer = malloc(1000);
-    recv(socket, data_buffer, 1000, 0);
-    printf("    [receive_file]: img data received from server\n");
+    // Receive the processed image data from the server 
+    int max_img_size = 10000;
+    char* img_data = malloc(max_img_size);
+    size_t read_data_size = recv(socket, img_data, max_img_size, 0);
+    printf("    [receive_file]: img data received from server. size: %ld\n", read_data_size);
 
-    // Write buffer to the created file
-    fwrite(file, 1, data_buffer, 1000);
+    // Write read amount of data to the file from the buffer
+    size_t written_data_size = fwrite(img_data, 1, read_data_size, file);
+    if(written_data_size != read_data_size){
+        perror("ERROR incorrect amount of data written to file");
+        return 1;
+    }
     printf("    [receive_file]: img data successfully written to file\n");
 
     fclose(file);
