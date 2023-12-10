@@ -7,7 +7,8 @@
 #define PORT 8083
 #define BUFFER_SIZE 1024 
 
-/* START QUEUE IMPLEMENTATION */
+
+/********************* [ Queue Implementation ] **********************/
 
 // Initialize the queue
 void queue_init(request_queue_t *q) {
@@ -33,7 +34,7 @@ request_t queue_dequeue(request_queue_t *q) {
 
 // View queue size and requests
 void queue_visualize(request_queue_t *q){
-    printf("|-----VISUALIZING QUEUE-----|\n");
+    printf("|----- VISUALIZING QUEUE -----|\n");
     printf(" queue size: %d\n", q->size);
     printf(" queue front request file: %s\n\n", q->requests[q->front].file_path);
 
@@ -44,14 +45,57 @@ void queue_visualize(request_queue_t *q){
         printf("    rotation angle: %d\n", current_request.rotation_angle);
     }
 
-    printf("|-----VISUALIZING QUEUE DONE-----|\n");
+    printf("|----- VISUALIZING QUEUE DONE -----|\n");
+}
+
+// Populate the queue with a request struct for each .png file in directory_path with the given rotation angle
+void queue_populate(request_queue_t *q, char* directory_path, int rotation_angle){
+    printf("    [q_populate]: directory_path - %s\n", directory_path);
+    printf("    [q_populate]: rotation_angle - %d\n", rotation_angle);
+
+    DIR *dir;
+    struct dirent *entry;
+
+    if((dir = opendir(directory_path)) == NULL){
+        perror("ERROR opendir() error");
+        exit(EXIT_FAILURE);
+    }
+
+    while((entry = readdir(dir)) != NULL){
+        struct stat file_stat;
+        stat(entry->d_name, &file_stat);
+        printf("    [q_populate]: reading entry\n");
+        
+        if(entry->d_type == DT_REG){  // Check for regular file
+            // Skip any non .png files
+            char* file_extension = strchr(entry->d_name, '.');
+            if(strcmp(file_extension, ".png") != 0){
+                printf("        [q_populate]: non-png file found\n");
+                continue;
+            }
+
+            // Assemble the file path string 
+            char* file_path = malloc(PATH_MAX);
+            sprintf(file_path, "%s/%s", directory_path, entry->d_name);
+            printf("        [q_populate]: file path -> %s\n", file_path);
+            
+            // Create a new node struct
+            request_t request;
+            request.file_path = file_path;
+            request.rotation_angle = rotation_angle;
+            printf("            [q_populate]: request.filepath -> %s\n", request.file_path);
+            
+            // Enqueue the request
+            queue_enqueue(q, request);
+            printf("    [q_populate]: file %s added to queue\n", file_path);
+        }
+    }
 }
 
 // Global queue
 request_queue_t request_queue;
 
-/* END QUEUE IMPLEMENTATION */
-
+/********************* [ End of Queue Implementation ] **********************/
 
 
 int send_file(int socket, const char *filename, int rotation_angle) {
@@ -86,29 +130,27 @@ int send_file(int socket, const char *filename, int rotation_angle) {
         fclose(file);
         return -1;
     }
-    // printf("send_file: img_data: ");
-    // for (int i = 0; i < 300 && i < img_size; ++i) {
-    //     printf("%02X ", (char)img_data[i]);
-    // }
-    // printf("\n");
 
     // Create a packet with size & flag
-    packet_t Packet;
-    Packet.size = img_size;
-    Packet.operation = IMG_OP_ROTATE;
+    packet_t packet;
+    packet.size = img_size;
+    packet.operation = IMG_OP_ROTATE;
     if(rotation_angle == 180){
-        Packet.flags = IMG_FLAG_ROTATE_180;
+        packet.flags = IMG_FLAG_ROTATE_180;
     }
     else if(rotation_angle == 270){
-        Packet.flags = IMG_FLAG_ROTATE_270;
+        packet.flags = IMG_FLAG_ROTATE_270;
     }
 
     // Serialize the packet
-    char *serializedPacket = serializePacket(&Packet);
-    printf("    [send_file]: packet serialized\n");
+    char *serialized_packet = serializePacket(&packet);
 
     // Send the serialized packet to the server
-    send(socket, serializedPacket, PACKETSZ, 0);
+    size_t sent_packet_size = send(socket, serialized_packet, PACKETSZ, 0);
+    if(sent_packet_size != PACKETSZ){
+        perror("ERROR incorrect packet size sent");
+        return 1;
+    }
 
     // Send the image data to the server
     size_t sent_data_size = send(socket, img_data, img_size, 0);
@@ -133,6 +175,10 @@ int receive_file(int socket, const char* output_filename) {
     int max_img_size = 10000;
     char* img_data = malloc(max_img_size);
     size_t read_data_size = recv(socket, img_data, max_img_size, 0);
+    if(read_data_size == -1){
+        perror("ERROR reading img packet from server");
+        return 1;
+    }
     printf("    [receive_file]: img data received from server. size: %ld\n", read_data_size);
 
     // Write read amount of data to the file from the buffer
@@ -157,50 +203,12 @@ int main(int argc, char* argv[]) {
     char* output_path = argv[2];
     int rotation_angle = atoi(argv[3]);
 
-    printf("CLIENT STARTING:\n");
-    printf("    src folder: %s\n", input_path);
+    printf("[CLIENT]: STARTING\n");
+    printf("[CLIENT]: src folder -> %s\n", input_path);
 
     // Initialize the global queue
     queue_init(&request_queue);
-
-    // Add .png files to the request queue
-    DIR *dir;
-    struct dirent *entry;
-
-    if((dir = opendir(input_path)) == NULL){
-        perror("opendir() error");
-        exit(EXIT_FAILURE);
-    }
-
-    while((entry = readdir(dir)) != NULL){
-        struct stat file_stat;
-        stat(entry->d_name, &file_stat);
-        printf("    reading entry:\n");
-        
-        if(entry->d_type == DT_REG){  // Check for regular file
-            // Skip any non .png files
-            char* file_extension = strchr(entry->d_name, '.');
-            if(strcmp(file_extension, ".png") != 0){
-                printf("        non-png file found\n");
-                continue;
-            }
-
-            // Assemble the file path string 
-            char* file_path = malloc(PATH_MAX);
-            sprintf(file_path, "%s/%s", input_path, entry->d_name);
-            printf("        file path: %s\n", file_path);
-            
-            // Create a new node struct
-            request_t request;
-            request.file_path = file_path;
-            request.rotation_angle = rotation_angle;
-            printf("            request.filepath: %s\n", request.file_path);
-            
-            // Enqueue the request
-            queue_enqueue(&request_queue, request);
-            printf("    File %s added to queue\n", file_path);
-        }
-    }
+    queue_populate(&request_queue, input_path, rotation_angle);
     queue_visualize(&request_queue);
 
     // Set up socket
@@ -230,15 +238,17 @@ int main(int argc, char* argv[]) {
         // Take a request off of the queue
         request_t request = queue_dequeue(&request_queue);
         printf("    [main]: request file_path: %s\n", request.file_path);
-        
-        // TODO: move packet sending code here out of send_file function
 
         // Send the image data to the server
         send_file(sockfd, request.file_path, rotation_angle);
 
         // Check that the request was acknowledged
         char ack_packet_buffer[PACKETSZ];
-        recv(sockfd, ack_packet_buffer, PACKETSZ, MSG_WAITALL);
+        size_t read_packet_size = recv(sockfd, ack_packet_buffer, PACKETSZ, 0);
+        if(read_packet_size != PACKETSZ){
+            perror("ERROR incorrect packet size received");
+            return 1;
+        }
         
         // Deserialize the packet
         packet_t *received_packet = deserializeData(ack_packet_buffer);
@@ -257,21 +267,26 @@ int main(int argc, char* argv[]) {
         printf("|----- End of Request -----|\n");
     }
 
-    // TODO: send a good exit packet
-    packet_t packet_bad;
-    packet_bad.operation = IMG_OP_EXIT;
-    packet_bad.size = 15;
-
-    char* data = serializePacket(&packet_bad);
-
+    // Create a packet with the exit operation
+    packet_t exit_packet;
+    exit_packet.operation = IMG_OP_EXIT;
+    exit_packet.size = 0;
+    exit_packet.flags = IMG_FLAG_ROTATE_180;
+    
     // Send the serialized packet to the server
-    int ret = send(sockfd, data, PACKETSZ, 0);
-    if(ret == -1)
-        perror("ERROR sending packet to server");
-
+    char* exit_packet_data = serializePacket(&exit_packet);
+    int ret = send(sockfd, exit_packet_data, PACKETSZ, 0);
+    if(ret == -1){
+        perror("ERROR sending exit packet to server");
+        return 1;
+    }
+    printf("    [main]: exit packet sent to server\n");
 
     // Terminate the connection once all images have been processed
+    // TODO: termination
 
     // Release any resources
+    // TODO: release rss
+
     return 0;
 }

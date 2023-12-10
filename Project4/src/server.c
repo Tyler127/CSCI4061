@@ -25,7 +25,7 @@ void *clientHandler(void *socket_desc) {
             perror("ERROR incorrect packet size received");
             return NULL;
         }
-        printf("    [%d]: Received New Request.\n", pid);
+        printf("    [%d]: |----- Received New Request -----|\n", pid);
 
         // Deserialize the packet
         packet_t *received_packet = deserializeData(buffer);
@@ -77,11 +77,6 @@ void *clientHandler(void *socket_desc) {
             return NULL;
         }
         printf("    [%d]: img_data -> read_data_size/received_size: %ld/%d\n", pid, read_data_size, received_size);
-        // printf("img_data: ");
-        // for (int i = 0; i < 300 && i < received_size; ++i) {
-        //     printf("%02X ", (char)img_data[i]);
-        // }
-        // printf("\n");
 
         // Process the image based on the operation and flags
         if(received_operation == IMG_OP_ROTATE){
@@ -158,17 +153,9 @@ void *clientHandler(void *socket_desc) {
             char* rotated_image_data = (char*)malloc(received_size);
             read_data_size = fread(rotated_image_data, 1, received_size, output_file);
             printf("    [%d]: output.png -> read_data_size/received_size: %ld/%d\n", pid, read_data_size, received_size);
-            // if(read_data_size != received_size){
-            //     perror("ERROR incorrect amount of data read from output.png file");
-            //     return NULL;
-            // }
             
             // Send the rotated image data to the clientt
             sent_data_size = send(sock, rotated_image_data, received_size, 0);
-            // if(sent_data_size != received_size){
-            //     perror("ERROR incorrect amount of image data from output.png sent");
-            //     return NULL;
-            // }
 
             // Clean up
             free(img_array);
@@ -186,7 +173,7 @@ void *clientHandler(void *socket_desc) {
         // Clean up
         free(img_data);
         free(received_packet);
-        printf("    [%d]: Request Finished!\n", pid);
+        printf("    [%d]: |----- Request Finished! -----|\n", pid);
     }
 
     // Clean up
