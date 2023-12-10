@@ -4,7 +4,7 @@
 #include <string.h> // Include this for memcpy'
 #include <sys/stat.h>  // For stat
 
-#define PORT 8082
+#define PORT 8083
 #define BUFFER_SIZE 1024 
 
 /* START QUEUE IMPLEMENTATION */
@@ -86,21 +86,21 @@ int send_file(int socket, const char *filename, int rotation_angle) {
         fclose(file);
         return -1;
     }
-    printf("send_file: img_data: ");
-    for (int i = 0; i < 300 && i < img_size; ++i) {
-        printf("%02X ", (char)img_data[i]);
-    }
-    printf("\n");
+    // printf("send_file: img_data: ");
+    // for (int i = 0; i < 300 && i < img_size; ++i) {
+    //     printf("%02X ", (char)img_data[i]);
+    // }
+    // printf("\n");
 
     // Create a packet with size & flag
     packet_t Packet;
     Packet.size = img_size;
     Packet.operation = IMG_OP_ROTATE;
     if(rotation_angle == 180){
-        Packet.flags == IMG_FLAG_ROTATE_180;
+        Packet.flags = IMG_FLAG_ROTATE_180;
     }
     else if(rotation_angle == 270){
-        Packet.flags == IMG_FLAG_ROTATE_270;
+        Packet.flags = IMG_FLAG_ROTATE_270;
     }
 
     // Serialize the packet

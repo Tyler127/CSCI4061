@@ -1,6 +1,6 @@
 #include "server.h"
 #include "common.h"
-#define PORT 8082
+#define PORT 8083
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024 
 
@@ -15,18 +15,37 @@ void *clientHandler(void *socket_desc) {
         // Receive the serialized packet from the client
         char buffer[PACKETSZ];
         memset(buffer, 0, PACKETSZ);
-        size_t read_size = recv(sock, buffer, PACKETSZ, MSG_WAITALL);
-        if(read_size == 0){
+        size_t read_packet_size = recv(sock, buffer, PACKETSZ, 0);
+
+        // Continue looping until a packet is received from the client
+        if(read_packet_size == 0){ 
             continue;
+        } 
+        else if(read_packet_size != PACKETSZ){
+            perror("ERROR incorrect packet size received");
+            return NULL;
         }
         printf("    [%d]: Received New Request.\n", pid);
 
         // Deserialize the packet
         packet_t *received_packet = deserializeData(buffer);
         unsigned char received_operation = received_packet->operation;
+        unsigned char received_flags = received_packet->flags;
         unsigned int received_size = received_packet->size;
 
-        // Exit if received the IMG_OP_EXIT flag
+        // Check the received flags from the packet
+        if(received_flags == IMG_FLAG_ROTATE_180){
+            printf("    [%d]: flags: IMG_FLAG_ROTATE_180\n", pid);
+        }
+        else if(received_flags == IMG_FLAG_ROTATE_270){
+            printf("    [%d]: flags: IMG_FLAG_ROTATE_270\n", pid);
+        }
+        else{
+            perror("ERROR no flags received");
+            return NULL;
+        }
+
+        // Exit if received the IMG_OP_EXIT operation
         if(received_operation == IMG_OP_ROTATE){
             printf("    [%d]: operation: IMG_OP_ROTATE\n", pid);
         } 
@@ -34,6 +53,10 @@ void *clientHandler(void *socket_desc) {
             printf("    [%d]: operation: IMG_OP_EXIT\n", pid);
             // TODO: Close the socket here?
             pthread_exit(NULL);
+        }
+        else{
+            perror("ERROR no operation received");
+            return NULL;
         }
         printf("    [%d]: received_size: %d\n", pid, received_size);
 
@@ -53,19 +76,19 @@ void *clientHandler(void *socket_desc) {
             perror("ERROR incorrect amount of data read");
             return NULL;
         }
-        printf("    [%d]: read_size/received_size: %ld/%d\n", pid, read_data_size, received_size);
-        printf("img_data: ");
-        for (int i = 0; i < 300 && i < received_size; ++i) {
-            printf("%02X ", (char)img_data[i]);
-        }
-        printf("\n");
+        printf("    [%d]: img_data -> read_data_size/received_size: %ld/%d\n", pid, read_data_size, received_size);
+        // printf("img_data: ");
+        // for (int i = 0; i < 300 && i < received_size; ++i) {
+        //     printf("%02X ", (char)img_data[i]);
+        // }
+        // printf("\n");
 
         // Process the image based on the operation and flags
         if(received_operation == IMG_OP_ROTATE){
             printf("    [%d]: processing image\n", pid);
 
             // Create a temp file for the input image data
-            const char* input_filename = "input.png";
+            const char* input_filename = "temp/input.png";
             FILE* input_file = fopen(input_filename, "wb");
             if(input_file == NULL){
                 perror("ERROR opening file");
@@ -74,12 +97,13 @@ void *clientHandler(void *socket_desc) {
 
             // Write the received image data to the new file
             size_t written_data_size = fwrite(img_data, 1, read_data_size, input_file);
-            printf("    [%d]: written_data_size/read_data_size: %ld/%ld\n", pid, written_data_size, read_data_size);
+            printf("    [%d]: input.png -> written_data_size/read_data_size: %ld/%ld\n", pid, written_data_size, read_data_size);
             if(written_data_size != read_data_size){
                 perror("ERROR incorrect amount of data written to file");
                 return NULL;
             }
-            printf("    [%d]: input.png created\n", pid);
+            fclose(input_file); // bro aint no way
+            printf("    [%d]: input.png successfully created\n", pid);
 
             // Rotate the image as per the flags (copied code from P3)
             int width;
@@ -92,20 +116,25 @@ void *clientHandler(void *socket_desc) {
                 result_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
                 img_matrix[i] = (uint8_t *)malloc(sizeof(uint8_t) * height);
             }
+
             linear_to_image(image_result, img_matrix, width, height);
+
             if(received_packet->flags == IMG_FLAG_ROTATE_180){
+                printf("    [%d]: 180 rotate\n", pid);
                 flip_left_to_right(img_matrix, result_matrix, width, height); 
             } 
             else if(received_packet->flags == IMG_FLAG_ROTATE_270){
+                printf("    [%d]: 270 rotate\n", pid);
                 flip_upside_down(img_matrix, result_matrix, width, height);
             }
+
             uint8_t* img_array = (uint8_t *)malloc(sizeof(uint8_t) * width * height); 
             flatten_mat(result_matrix, img_array, width, height);
 
             // Create temp file for output image data
-            const char* output_filename = "output.png";
-            FILE* output_file = fopen(output_filename, "w");
+            const char* output_filename = "temp/output.png";
             stbi_write_png(output_filename, width, height, CHANNEL_NUM, img_array, (width*CHANNEL_NUM));
+            printf("    [%d]: output.png created\n", pid);
 
             // Create a success acknowledgement packet
             packet_t ack_packet;
@@ -113,14 +142,25 @@ void *clientHandler(void *socket_desc) {
             ack_packet.flags = received_packet->flags;
             ack_packet.size = received_size;
 
+            // TODO: Create a IMG_OP_NACK packet and send it instead if output image dont work
+
             // Send acknowledgement packet to client
             char* serialized_packet = serializePacket(&ack_packet);
-            send(sock, serialized_packet, PACKETSZ, 0);
+            size_t sent_data_size = send(sock, serialized_packet, PACKETSZ, 0);
+            if(sent_data_size != PACKETSZ){
+                perror("ERROR incorrect size packet sent");
+                return NULL;
+            }
+            printf("    [%d]: acknowledgement packet sent to client\n", pid);
 
-            // Send rotated img data to client
-            char* rotated_image_buffer = (char*)malloc(received_size);
-            read(output_filename, rotated_image_buffer, received_size);
-            send(sock, rotated_image_buffer, received_size, 0);
+            // Send rotated image data to client
+            char* rotated_image_data = (char*)malloc(received_size);
+            read(output_filename, rotated_image_data, received_size);
+            sent_data_size = send(sock, rotated_image_data, received_size, 0);
+            if(sent_data_size != received_size){
+                perror("ERROR incorrect size of image data sent");
+                return NULL;
+            }
 
             // Clean up
             free(img_array);
@@ -130,17 +170,15 @@ void *clientHandler(void *socket_desc) {
             }
             free(result_matrix);
             free(img_matrix);
-            fclose(input_file);
-            fclose(output_file);
+            // fclose(input_file);
             // remove(input_filename);
             // remove(output_filename);
-            printf(" done\n");
         }
 
         // Clean up
         free(img_data);
         free(received_packet);
-
+        printf("    [%d]: Request Finished!\n", pid);
     }
 
     // Clean up
