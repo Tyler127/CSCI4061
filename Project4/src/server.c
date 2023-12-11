@@ -1,6 +1,6 @@
 #include "server.h"
 #include "common.h"
-#define PORT 8083
+#define PORT 8087
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024 
 
@@ -51,7 +51,9 @@ void *clientHandler(void *socket_desc) {
         } 
         else if(received_operation == IMG_OP_EXIT){
             printf("    [%d]: operation: IMG_OP_EXIT\n", pid);
-            // TODO: Close the socket here?
+            close(sock);
+            free(received_packet);
+            printf("    [clientHandler][%d]: Thread exiting...\n", pid);
             pthread_exit(NULL);
         }
         else{
@@ -217,6 +219,7 @@ int main(int argc, char* argv[]){
 
     // Accept connections and create the client handling threads
     printf("[SERVER]: accepting connections.\n");
+    int clients_handled = 0;
     while (1) {
         new_socket_fd = accept(socket_fd, (struct sockaddr *) &client_addr, &client_length);
         if (new_socket_fd < 0) {

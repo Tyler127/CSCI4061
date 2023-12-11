@@ -4,7 +4,7 @@
 #include <string.h> // Include this for memcpy'
 #include <sys/stat.h>  // For stat
 
-#define PORT 8083
+#define PORT 8087
 #define BUFFER_SIZE 1024 
 
 
@@ -75,7 +75,7 @@ void queue_populate(request_queue_t *q, char* directory_path, int rotation_angle
             }
 
             // Assemble the file path string 
-            char* file_path = malloc(PATH_MAX);
+            char file_path[PATH_MAX];
             sprintf(file_path, "%s/%s", directory_path, entry->d_name);
             printf("        [q_populate]: file path -> %s\n", file_path);
             
@@ -156,6 +156,7 @@ int send_file(int socket, const char *filename, int rotation_angle) {
     size_t sent_data_size = send(socket, img_data, img_size, 0);
     printf("    [send_file]: img sent to server. size: %ld\n", sent_data_size);
 
+    free(serialized_packet);
     fclose(file);
     return 0;
 }
@@ -286,6 +287,9 @@ int main(int argc, char* argv[]) {
     // TODO: termination
 
     // Release any resources
+    free(exit_packet_data);
+    close(sockfd); // close socket
+    fprintf(stdout, "Client exiting...\n");
     // TODO: release rss
 
     return 0;
