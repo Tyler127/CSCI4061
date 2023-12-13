@@ -4,7 +4,7 @@
 #include <string.h> // Include this for memcpy'
 #include <sys/stat.h>  // For stat
 
-#define PORT 8087
+#define PORT 9428
 #define BUFFER_SIZE 1024 
 
 

@@ -1,6 +1,6 @@
 #include "server.h"
 #include "common.h"
-#define PORT 8087
+#define PORT 9428
 #define MAX_CLIENTS 5
 #define BUFFER_SIZE 1024 
 
@@ -139,8 +139,6 @@ void *clientHandler(void *socket_desc) {
             ack_packet.flags = received_packet->flags;
             ack_packet.size = received_size;
 
-            // TODO: Create a IMG_OP_NACK packet and send it instead if output image dont work
-
             // Send acknowledgement packet to client
             char* serialized_packet = serializePacket(&ack_packet);
             size_t sent_data_size = send(sock, serialized_packet, PACKETSZ, 0);
@@ -156,7 +154,7 @@ void *clientHandler(void *socket_desc) {
             read_data_size = fread(rotated_image_data, 1, received_size, output_file);
             printf("    [%d]: output.png -> read_data_size/received_size: %ld/%d\n", pid, read_data_size, received_size);
             
-            // Send the rotated image data to the clientt
+            // Send the rotated image data to the client
             sent_data_size = send(sock, rotated_image_data, received_size, 0);
 
             // Clean up
@@ -219,8 +217,9 @@ int main(int argc, char* argv[]){
 
     // Accept connections and create the client handling threads
     printf("[SERVER]: accepting connections.\n");
-    int clients_handled = 0;
+    pthread_t thread_id;
     while (1) {
+        memset(&thread_id, 0, sizeof(thread_id));
         new_socket_fd = accept(socket_fd, (struct sockaddr *) &client_addr, &client_length);
         if (new_socket_fd < 0) {
             perror("ERROR on accept");
@@ -228,16 +227,17 @@ int main(int argc, char* argv[]){
         }
         printf("[SERVER]: client accepted.\n");
 
-        pthread_t thread_id;
+    
         if (pthread_create(&thread_id, NULL, clientHandler, (void*)&new_socket_fd) < 0) {
             perror("ERROR creating thread");
             return 1;
         }
         printf("[SERVER]: new thread made for client.\n");
 
-        pthread_detach(thread_id); // Detach the thread
-    }
+        // pthread_detach(thread_id); // Detach the thread
 
+    }
+    pthread_join(thread_id, NULL);
     // Release any resources
     close(socket_fd);
     printf("[SERVER]: server ending");
